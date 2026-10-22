@@ -32,8 +32,8 @@ Serve through HTTP, not by opening `index.html` as a local file. Stop an existin
 
 - Scroll forwards and backwards through all six clips. The dots jump to meaningful chapter holds. “Still views” provides static chapter navigation; the OS reduced-motion preference enables that mode on initial load.
 - At front, middle and rear holds, open the corresponding seat zone. The camera never has clickable targets attached to moving film.
-- The map is **explicitly schematic**, not a verified venue plan. It covers left, centre and right seats. Mobile starts with the accessible list; a horizontally scrollable map is also available. Hover or focus reveals details; click or tap immediately selects or removes a seat. A compact whole-hall schematic distinguishes front/middle/rear zones from left/centre/right blocks and the two aisles. The current map zone and paused tour zone are labelled separately. The 72 demo seats are selected sample rows only, not the hall capacity.
-- Available = ○, unavailable = ×, selected = ✓, with accompanying labels. Unavailable seats are disabled and labelled; they cannot be selected.
+- The map is **explicitly schematic**, not a verified venue plan. It covers left, centre and right seats. Mobile starts with the accessible list; a horizontally scrollable map is also available. Hover previews an unpinned seat; clicking or focusing pins its details so scrolling to the action cannot accidentally change the seat. Click another seat to inspect it.
+- Available = ○, unavailable = ×, selected = ✓, with accompanying labels. Unavailable seats remain keyboard-focusable for details but cannot be selected.
 - Select seats across zones and check the summary. Prices are £85/£65/£45, plus a clearly stated £2 sample fee per selected seat. All money calculations use integer pence.
 - Enter sample attendee details. There is no real card form, payment, email delivery, backend reservation or scarcity claim.
 - The generated ticket can be revisited from the footer, downloaded as a self-contained SVG, or printed/saved to PDF through the browser print dialog. The QR contains only a `DEMO-SW-…` reference. Tickets visibly say they are not valid for entry.
@@ -44,7 +44,7 @@ Serve through HTTP, not by opening `index.html` as a local file. Stop an existin
 
 The existing Vite/plain-JavaScript stack was retained. Three.js has been removed from runtime dependencies. GSAP ScrollTrigger supplies the single global timeline, and one GSAP ticker advances the smoothed canvas playhead. There is no wheel interception, custom scroll engine, autoplay, audio or invented venue geometry.
 
-The 62-second source set is converted at its native **24 fps** into **1,488 WebP frames per variant**: desktop 1280×720 and mobile 640×360. The previous 768×432 derivatives remain preserved. Full active frame payloads are about **59.7 MB desktop / 26.8 MB mobile**, but the page loads a current-frame window and adjacent boundaries progressively. It does not download or retain the entire sequence before display. The application cache is capped at **38 desktop / 26 mobile decoded frames**. Obsolete requests are aborted, bitmap decoding is explicitly awaited, evicted bitmaps are closed, and all media work pauses while a dialog covers the tour. Only the current frame window and approaching neighbouring boundary are prepared. Browser-managed caches are outside that cap.
+The 62-second source set is converted at its native **24 fps** into **1,488 WebP frames per variant**: desktop 1280×720 and mobile 768×432. Full frame payloads are about **59.7 MB desktop / 33.0 MB mobile**, but the page loads a current-frame window and adjacent boundaries progressively. It does not download or retain the entire sequence before display. The application cache is capped at **38 desktop / 26 mobile image references**, plus six small scene posters. Browser-managed caches are outside that cap.
 
 Frames preserve bidirectional seeking without video decoder/keyframe stalls. The larger asset set is the deliberate tradeoff for deterministic seeking; production delivery should use a CDN with immutable caching and compression for text assets. Slow-network and physical-device GPU profiling remain outstanding. Portrait uses a composed widescreen media band so side seating and architecture remain visible.
 
@@ -64,7 +64,7 @@ Regeneration requires `pip install imageio-ffmpeg`, then `python scripts/prepare
 
 ## Verification and limits
 
-Production build and eight focused Node tests passed. See `PERFORMANCE.md` for the measured optimization pass and its limits. Browser checks exercised all six clips and forward/reverse boundaries, static chapter navigation, rear release/re-entry, restored scroll position, desktop and mobile layouts, keyboard inspection, unavailable protection, side-seat selection, cross-zone totals, deselection, inline validation, simulated checkout, ticket persistence and SVG download. The downloaded QR was decoded independently with ZXing and contained only the expected demo reference. Browser error/warning logs were empty during the checked flows.
+Production build and five focused Node tests passed. Browser checks exercised all six clips and forward/reverse boundaries, static chapter navigation, rear release/re-entry, restored scroll position, desktop and mobile layouts, keyboard inspection, unavailable protection, side-seat selection, cross-zone totals, deselection, inline validation, simulated checkout, ticket persistence and SVG download. The downloaded QR was decoded independently with ZXing and contained only the expected demo reference. Browser error/warning logs were empty during the checked flows.
 
 Screenshots, the downloaded sample ticket, and verification notes remain in `review/` in the original local delivery. These local review artifacts are excluded from this repository. The native OS print/save dialog and physical printer were not exercised. Automatic OS reduced-motion detection is implemented; the equivalent still-view mode was exercised through the interface. No formal Lighthouse, field Core Web Vitals, throttled-network or physical-device performance claim is made.
 
@@ -92,8 +92,3 @@ The `main` branch tracks `origin/main`. Use `git pull --ff-only` to retrieve upd
 Import this repository into Vercel as a Vite project. The included `vercel.json` specifies `npm run build` and the `dist` output folder. No environment variables or backend services are required for this demo. Optimized media frames and license notices are committed; original video files, dependencies, generated builds, local screenshots and review artifacts are excluded.
 
 
-
-
-## Local performance lab
-
-Append `?measure` to a local preview URL to enable opt-in counters. The hidden `#lab-report` output records request counts, animation-frame intervals, DOM mutation counts and activation-to-next-frame samples. Nothing is transmitted. These are local lab observations, not real-user Core Web Vitals or a GPU trace. The normal website does not load the lab module.

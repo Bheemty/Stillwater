@@ -1,22 +1,8 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { journeyLength, locate, chapters, segments } from "./data";
-import { FrameStore } from "./frame-store";
 gsap.registerPlugin(ScrollTrigger);
-ScrollTrigger.config({ ignoreMobileResize: true });
 const base = import.meta.env.BASE_URL;
-const bounds = new Map(
-  [1, 2, 3, 4, 5, 6].map((clip) => {
-    const ranges = segments.filter((s) => s.clip === clip);
-    return [
-      clip,
-      [
-        Math.round(Math.min(...ranges.map((s) => s.from)) * 24) + 1,
-        Math.round(Math.max(...ranges.map((s) => s.to)) * 24) + 1,
-      ],
-    ];
-  }),
-);
 export function startJourney(onScene) {
   const canvas = document.querySelector("#cinema"),
     ctx = canvas.getContext("2d", { alpha: false }),
@@ -24,110 +10,124 @@ export function startJourney(onScene) {
     stage = section.firstElementChild,
     state = document.querySelector(".media-state"),
     message = document.querySelector("#media-message"),
-    retry = document.querySelector("#media-retry"),
-    bar = document.querySelector("#journey-bar"),
-    index = document.querySelector("#chapter-index"),
-    title = document.querySelector("#chapter-title"),
-    nav = document.querySelector("#chapter-nav");
-  let target = 0,
+    retry = document.querySelector("#media-retry");
+  const mobile = matchMedia("(max-width:700px)").matches,
+    variant = mobile ? "mobile" : "desktop",
+    cache = new Map(),
+    pending = new Set(),
+    failed = new Set(),
+    posters = new Map();
+  let queue = [],
+    active = 0,
+    target = 0,
     current = 0,
     last = performance.now(),
+    lastDraw = "",
     width = 0,
     height = 0,
     trigger,
     still = matchMedia("(prefers-reduced-motion:reduce)").matches,
     scene = "",
-    lastDraw = "",
-    lastRequested = "",
-    variant = "",
-    mobile = false,
-    framesDrawn = 0,
-    running = false,
-    paused = false,
-    sizeDirty = false,
-    chapter = "",
-    progress = -1;
-  const key = (c, f) => `${c}/${f}`,
+    disposed = false,
+    framesDrawn = 0;
+  const maxCache = mobile ? 26 : 38,
+    key = (c, f) => `${c}/${f}`,
+    url = (c, f) =>
+      `${base}media/${c}/${variant}/${String(f).padStart(4, "0")}.webp`,
     clampFrame = (c, f) =>
-      Math.max(bounds.get(c)[0], Math.min(bounds.get(c)[1], f));
-  async function load(k, signal) {
-    const [c, f] = k.split("/");
-    const response = await fetch(
-      `${base}media/${c}/${variant}/${f.padStart(4, "0")}.webp`,
-      { signal, priority: "high" },
-    );
-    if (!response.ok) throw new Error("Scene load failed");
-    const blob = await response.blob();
-    signal.throwIfAborted();
-    if (typeof createImageBitmap === "function") return createImageBitmap(blob);
-    const image = new Image(),
-      url = URL.createObjectURL(blob);
-    try {
-      image.src = url;
-      await image.decode();
-      return image;
-    } finally {
-      URL.revokeObjectURL(url);
-    }
-  }
-  const store = new FrameStore(load, wake);
-  function wake() {
-    if (!running && !paused && !document.hidden) {
-      last = performance.now();
-      running = true;
-      gsap.ticker.add(tick);
-    }
-  }
-  function sleep() {
-    running = false;
-    gsap.ticker.remove(tick);
-  }
-  function plan(c, f) {
-    const keys = [key(c, f)],
-      direction = target >= current ? 1 : -1;
-    for (let d = 1; d <= 6; d++) {
-      keys.push(key(c, clampFrame(c, f + d * direction)));
-      if (d <= 3) keys.push(key(c, clampFrame(c, f - d * direction)));
-    }
-    // Prepare only the boundary we are approaching, not all six scenes on arrival.
-    const ranges = segments.filter((s) => s.clip === c),
-      start = Math.round(ranges[0].from * 24) + 1,
-      end = Math.round(Math.max(...ranges.map((s) => s.to)) * 24) + 1;
-    if (f >= end - 12 && c < 6)
-      keys.push(
-        key(
-          c + 1,
-          Math.round(segments.find((s) => s.clip === c + 1).from * 24) + 1,
-        ),
+      Math.max(1, Math.min(c === 1 ? 480 : c === 2 ? 240 : 192, f));
+  function trim() {
+    if (cache.size <= maxCache) return;
+    const pos = locate(current),
+      f = clampFrame(pos.clip, Math.round(pos.time * 24) + 1);
+    const ranked = [...cache.keys()].sort((a, b) => {
+      const [ac, af] = a.split("/").map(Number),
+        [bc, bf] = b.split("/").map(Number);
+      return (
+        (ac === pos.clip ? 0 : 10000) +
+        Math.abs(af - f) -
+        ((bc === pos.clip ? 0 : 10000) + Math.abs(bf - f))
       );
-    if (f <= start + 12 && c > 1)
-      keys.push(
-        key(
-          c - 1,
-          Math.round(
-            Math.max(
-              ...segments.filter((s) => s.clip === c - 1).map((s) => s.to),
-            ) * 24,
-          ) + 1,
-        ),
+    });
+    for (const k of ranked.slice(maxCache)) cache.delete(k);
+  }
+  function pump() {
+    while (active < 4 && queue.length) {
+      const t = queue.shift(),
+        k = key(t.c, t.f);
+      if (cache.has(k) || pending.has(k) || failed.has(k)) continue;
+      active++;
+      pending.add(k);
+      const img = new Image();
+      img.decoding = "async";
+      img.onload = () => {
+        pending.delete(k);
+        active--;
+        if (disposed) return;
+        cache.set(k, img);
+        trim();
+        lastDraw = "";
+        pump();
+      };
+      img.onerror = () => {
+        pending.delete(k);
+        active--;
+        failed.add(k);
+        lastDraw = "";
+        pump();
+      };
+      img.src = url(t.c, t.f);
+    }
+  }
+  function request(c, f, priority = false) {
+    f = clampFrame(c, f);
+    const k = key(c, f);
+    if (cache.has(k) || pending.has(k) || failed.has(k)) return;
+    queue = queue.filter((x) => key(x.c, x.f) !== k);
+    priority ? queue.unshift({ c, f }) : queue.push({ c, f });
+  }
+  function loadWindow(c, f) {
+    queue = [];
+    request(c, f, true);
+    for (let d = 1; d <= 9; d++) {
+      request(c, f + d);
+      request(c, f - d);
+    }
+    for (const nc of [c - 1, c + 1].filter((x) => x >= 1 && x <= 6)) {
+      request(nc, 1);
+      request(
+        nc,
+        Math.round(
+          Math.max(...segments.filter((s) => s.clip === nc).map((s) => s.to)) *
+            24,
+        ) + 1,
       );
-    store.plan(keys);
+    }
+    pump();
   }
   function find(c, f) {
-    let result,
-      dist = Infinity,
-      frame = f;
-    for (const [k, image] of store.cache) {
-      const [clip, n] = k.split("/").map(Number);
-      if (clip === c && Math.abs(n - f) < dist) {
-        dist = Math.abs(n - f);
-        result = image;
-        frame = n;
+    if (cache.has(key(c, f))) return cache.get(key(c, f));
+    let best,
+      dist = Infinity;
+    for (const [k, img] of cache) {
+      const [nc, nf] = k.split("/").map(Number);
+      if (nc === c && Math.abs(nf - f) < dist) {
+        dist = Math.abs(nf - f);
+        best = img;
       }
     }
-    return result ? { image: result, frame } : null;
+    return best;
   }
-  function draw(image) {
+  for (let c = 1; c <= 6; c++) {
+    const img = new Image();
+    img.onload = () => {
+      posters.set(c, img);
+      lastDraw = "";
+    };
+    img.src = `${base}media/${c}-start.webp`;
+  }
+  function draw(img) {
+    ctx.globalAlpha = 1;
     let dw, dh;
     if (width / height > 16 / 9) {
       dw = width;
@@ -141,55 +141,14 @@ export function startJourney(onScene) {
       dh = (width * 9) / 16;
       ctx.fillStyle = "#20251f";
       ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(image, 0, Math.round(height * 0.32), dw, dh);
-    } else ctx.drawImage(image, (width - dw) / 2, (height - dh) / 2, dw, dh);
+      ctx.drawImage(img, 0, Math.round(height * 0.32), dw, dh);
+    } else ctx.drawImage(img, (width - dw) / 2, (height - dh) / 2, dw, dh);
   }
-  function displayedScene(pos, frame) {
-    if (pos.clip === 1) return frame < 289 ? "arrival" : "lobby";
-    if (pos.clip === 5) return frame <= 63 ? "front" : "middle";
-    if (pos.clip === 4)
-      return frame >= 151 && pos.scene === "front" ? "front" : "turn";
-    return pos.scene;
-  }
-  function updateScene(next) {
-    if (next === scene) return;
-    scene = next;
-    onScene(scene);
-    stage.dataset.scene = scene;
-    const ch =
-      chapters.find(
-        (c) =>
-          c.key ===
-          (scene === "turn"
-            ? "stage"
-            : scene === "auditorium"
-              ? "lobby"
-              : scene),
-      ) || chapters[0];
-    if (ch.key !== chapter) {
-      chapter = ch.key;
-      index.textContent = String(chapters.indexOf(ch) + 1).padStart(2, "0");
-      title.textContent = ch.name;
-      nav
-        .querySelectorAll("button")
-        .forEach((b) =>
-          b.setAttribute("aria-current", String(b.dataset.chapter === ch.key)),
-        );
-    }
-  }
+  let lastRequested = "";
   function tick() {
-    if (paused || document.hidden) {
-      sleep();
-      return;
-    }
-    if (sizeDirty) {
-      sizeDirty = false;
-      resize();
-    }
     const now = performance.now(),
       dt = Math.min(0.1, (now - last) / 1000);
     last = now;
-    // Preserve the existing response rate; never add smoothing to hide missed frames.
     current = still
       ? target
       : current + (target - current) * (1 - Math.exp(-dt * 15));
@@ -198,125 +157,99 @@ export function startJourney(onScene) {
       f = clampFrame(pos.clip, Math.round(pos.time * 24) + 1),
       k = key(pos.clip, f);
     if (lastRequested !== k) {
+      loadWindow(pos.clip, f);
       lastRequested = k;
-      plan(pos.clip, f);
     }
-    const visible = find(pos.clip, f),
-      drawKey = visible ? key(pos.clip, visible.frame) : "";
-    if (visible && lastDraw !== drawKey) {
-      draw(visible.image);
+    const img = find(pos.clip, f) || posters.get(pos.clip);
+    if (img && lastDraw !== k) {
+      draw(img);
       framesDrawn++;
-      lastDraw = drawKey;
+      lastDraw = k;
       state.classList.add("ready");
       stage.dataset.clip = pos.clip;
-      stage.dataset.frame = visible.frame;
-      stage.dataset.exact = String(visible.frame === f);
-      updateScene(displayedScene(pos, visible.frame));
+      stage.dataset.frame = f;
+      stage.dataset.cached = cache.size;
+      stage.dataset.exact = String(cache.has(k));
     }
-    // A hold can change semantics at the same film frame.
-    if (visible && visible.frame === f) updateScene(displayedScene(pos, f));
-    stage.dataset.cached = store.cache.size;
-    stage.dataset.pending = store.active.size;
-    stage.dataset.paused = "false";
-    if (store.failed.has(k)) {
+    if (failed.has(k)) {
       state.classList.remove("ready");
       message.textContent =
         "This scene could not load. Still views and the seat map are available.";
       retry.hidden = false;
     }
-    if (progress !== current) {
-      progress = current;
-      bar.style.transform = `scaleX(${Math.max(0, Math.min(1, current / journeyLength))})`;
+    if (scene !== pos.scene) {
+      scene = pos.scene;
+      onScene(scene);
+      stage.dataset.scene = scene;
     }
-    if (current === target) sleep(); // Decodes and scroll updates wake only when needed.
+    document.querySelector("#journey-bar").style.transform =
+      `scaleX(${Math.max(0, Math.min(1, current / journeyLength))})`;
+    const ch =
+      [...chapters].reverse().find((c) => current >= c.progress - 0.3) ||
+      chapters[0];
+    document.querySelector("#chapter-index").textContent = String(
+      chapters.indexOf(ch) + 1,
+    ).padStart(2, "0");
+    document.querySelector("#chapter-title").textContent = ch.name;
+    document
+      .querySelectorAll("#chapter-nav button")
+      .forEach((b) =>
+        b.setAttribute("aria-current", String(b.dataset.chapter === ch.key)),
+      );
   }
   function resize() {
-    const w = stage.clientWidth,
-      h = stage.clientHeight,
-      widthChanged = w !== width;
-    if (w === width && h === height) return;
-    const old = target,
-      wasInside =
-        trigger &&
-        window.scrollY >= trigger.start &&
-        window.scrollY <= trigger.end;
-    width = w;
-    height = h;
-    mobile = matchMedia("(max-width:700px), (pointer:coarse)").matches;
-    const next = mobile ? (width >= 700 ? "mobile" : "mobile640") : "desktop";
-    if (variant !== next) {
-      variant = next;
-      store.clear();
-      lastRequested = "";
-      store.limit = mobile ? 26 : 38;
-      store.concurrency = mobile ? 2 : 3;
-    }
+    width = stage.clientWidth;
+    height = stage.clientHeight;
     const dpr = Math.min(devicePixelRatio || 1, 1.5);
     canvas.width = Math.round(width * dpr);
     canvas.height = Math.round(height * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     lastDraw = "";
-    if (widthChanged && trigger) {
-      section.style.height = `calc(100svh + ${journeyLength * (innerWidth < 700 ? 410 : 530)}px)`;
-      ScrollTrigger.refresh();
-      if (wasInside) {
-        target = current = old;
-        window.scrollTo({
-          top:
-            trigger.start +
-            (old / journeyLength) * (trigger.end - trigger.start),
-          behavior: "instant",
-        });
-      }
-    }
   }
   function setup() {
     trigger?.kill();
-    trigger = null;
     section.classList.toggle("is-still", still);
     section.style.height = still
       ? "100svh"
       : `calc(100svh + ${journeyLength * (innerWidth < 700 ? 410 : 530)}px)`;
-    resize();
     if (!still)
       trigger = ScrollTrigger.create({
         trigger: section,
         start: "top top",
         end: "bottom bottom",
-        onUpdate: (s) => {
-          target = s.progress * journeyLength;
-          wake();
-        },
-        onRefresh: (s) => {
-          target = s.progress * journeyLength;
-          wake();
-        },
+        onUpdate: (s) => (target = s.progress * journeyLength),
+        onRefresh: (s) => (target = s.progress * journeyLength),
       });
-    const control = document.querySelector("#still-mode");
-    control.setAttribute("aria-pressed", String(still));
-    control.textContent = still ? "Enable motion" : "Still views";
+    document
+      .querySelector("#still-mode")
+      .setAttribute("aria-pressed", String(still));
+    document.querySelector("#still-mode").textContent = still
+      ? "Enable motion"
+      : "Still views";
     document.querySelector("#scene-hint").hidden = still;
+    resize();
     ScrollTrigger.refresh();
-    wake();
   }
+  const nav = document.querySelector("#chapter-nav");
   nav.innerHTML = chapters
     .map(
       (c) =>
         `<button data-chapter="${c.key}" aria-label="Go to ${c.name}" title="${c.name}"><span>${c.name}</span></button>`,
     )
     .join("");
-  function go(k) {
-    const ch = chapters.find((c) => c.key === k);
-    if (!ch) return;
+  function go(key) {
+    const c = chapters.find((c) => c.key === key);
+    if (!c) return;
     if (still) {
-      target = current = ch.progress;
+      target = current = c.progress;
+      lastDraw = "";
       window.scrollTo({ top: section.offsetTop, behavior: "instant" });
-      wake();
     } else
       window.scrollTo({
         top:
-          trigger.start +
-          (ch.progress / journeyLength) * (trigger.end - trigger.start),
+          section.offsetTop +
+          (c.progress / journeyLength) *
+            (section.offsetHeight - stage.offsetHeight),
         behavior: "instant",
       });
   }
@@ -329,33 +262,13 @@ export function startJourney(onScene) {
     setup();
   };
   retry.onclick = () => {
-    store.failed.clear();
+    failed.clear();
     lastRequested = "";
+    lastDraw = "";
     message.textContent = "Loading scene…";
     retry.hidden = true;
-    wake();
   };
-  const observer = new ResizeObserver(() => {
-    sizeDirty = true;
-    wake();
-  });
-  observer.observe(stage);
-  const dialogs = [...document.querySelectorAll("dialog")];
-  function pause() {
-    paused = document.hidden || dialogs.some((d) => d.open);
-    stage.dataset.paused = String(paused);
-    store.pause(paused);
-    if (paused) sleep();
-    else {
-      lastRequested = "";
-      wake();
-    }
-  }
-  const modalObserver = new MutationObserver(pause);
-  dialogs.forEach((d) =>
-    modalObserver.observe(d, { attributes: true, attributeFilter: ["open"] }),
-  );
-  document.addEventListener("visibilitychange", pause);
+  window.addEventListener("resize", resize);
   matchMedia("(prefers-reduced-motion:reduce)").addEventListener(
     "change",
     (e) => {
@@ -364,30 +277,31 @@ export function startJourney(onScene) {
     },
   );
   setup();
+  gsap.ticker.add(tick);
   window.addEventListener(
     "pagehide",
     () => {
-      sleep();
-      store.pause(true);
+      disposed = true;
+      gsap.ticker.remove(tick);
+      trigger?.kill();
+      window.removeEventListener("resize", resize);
     },
     { once: true },
   );
-  window.addEventListener("pageshow", pause);
   return {
     go,
     get still() {
       return still;
     },
     stats: () => ({
-      cached: store.cache.size,
-      pending: store.active.size,
+      cached: cache.size,
+      pending: pending.size,
       framesDrawn,
       target,
       current,
       scene,
       variant,
-      paused,
-      failed: store.failed.size,
+      failed: failed.size,
     }),
   };
 }
