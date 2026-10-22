@@ -4,6 +4,9 @@ A cinematic scroll journey using the six supplied films, followed by event infor
 
 ## Preview
 
+Public website: **https://stillwater-concert-experience.vercel.app/**
+
+
 The local preview runs at **http://127.0.0.1:5173/**. Build output is generated locally and is excluded from Git.
 
 For a normal Node.js installation (22.12+; tested with Node 24):
@@ -87,4 +90,5 @@ npm run preview
 The `main` branch tracks `origin/main`. Use `git pull --ff-only` to retrieve updates, and `git push` to publish committed changes. GitHub authentication is required for writing; use Git Credential Manager or GitHub CLI rather than storing credentials in source files or remote URLs.
 
 Import this repository into Vercel as a Vite project. The included `vercel.json` specifies `npm run build` and the `dist` output folder. No environment variables or backend services are required for this demo. Optimized media frames and license notices are committed; original video files, dependencies, generated builds, local screenshots and review artifacts are excluded.
+
 
