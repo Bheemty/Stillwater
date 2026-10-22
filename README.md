@@ -63,7 +63,7 @@ Regeneration requires `pip install imageio-ffmpeg`, then `python scripts/prepare
 
 Production build and five focused Node tests passed. Browser checks exercised all six clips and forward/reverse boundaries, static chapter navigation, rear release/re-entry, restored scroll position, desktop and mobile layouts, keyboard inspection, unavailable protection, side-seat selection, cross-zone totals, deselection, inline validation, simulated checkout, ticket persistence and SVG download. The downloaded QR was decoded independently with ZXing and contained only the expected demo reference. Browser error/warning logs were empty during the checked flows.
 
-Screenshots and the downloaded sample ticket are in `review/`; detailed results are in `review/VERIFICATION.md`. The native OS print/save dialog and physical printer were not exercised. Automatic OS reduced-motion detection is implemented; the equivalent still-view mode was exercised through the interface. No formal Lighthouse, field Core Web Vitals, throttled-network or physical-device performance claim is made.
+Screenshots, the downloaded sample ticket, and verification notes remain in `review/` in the original local delivery. These local review artifacts are excluded from this repository. The native OS print/save dialog and physical printer were not exercised. Automatic OS reduced-motion detection is implemented; the equivalent still-view mode was exercised through the interface. No formal Lighthouse, field Core Web Vitals, throttled-network or physical-device performance claim is made.
 
 The films are user-supplied AI footage. Architectural details, chair spacing and lighting drift slightly between shots; these are not a geometrically validated 3D model. The turn is trimmed at 6.25s to match clip five at 0.125s, substantially reducing their source join mismatch. Other joins are close, without long dissolves. Source detail is limited to 720p. Seat availability, positions, event facts and checkout are demonstration data, not a real bookable event.
 
@@ -87,3 +87,4 @@ npm run preview
 The `main` branch tracks `origin/main`. Use `git pull --ff-only` to retrieve updates, and `git push` to publish committed changes. GitHub authentication is required for writing; use Git Credential Manager or GitHub CLI rather than storing credentials in source files or remote URLs.
 
 Import this repository into Vercel as a Vite project. The included `vercel.json` specifies `npm run build` and the `dist` output folder. No environment variables or backend services are required for this demo. Optimized media frames and license notices are committed; original video files, dependencies, generated builds, local screenshots and review artifacts are excluded.
+
