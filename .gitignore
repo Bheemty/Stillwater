@@ -1,0 +1,12 @@
+node_modules/
+dist/
+.vercel/
+.env
+.env.*
+!.env.example
+*.log
+review/
+/exterior.png
+/lobby.png
+/mobile.png
+/seats.png

@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#252923" />
+    <meta
+      name="description"
+      content="Step inside Stillwater Hall. Explore the venue, choose your seat and create a demo digital ticket."
+    />
+    <title>Stillwater Hall — Before the first note</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+  </head>
+  <body>
+    <a class="skip-link" href="#event">Skip the cinematic tour</a>
+    <header class="site-header">
+      <a
+        class="wordmark"
+        href="#top"
+        aria-label="Stillwater Hall, back to beginning"
+        ><span class="mark" aria-hidden="true">Ⅲ</span
+        ><span
+          >Stillwater<span class="wordmark-sub"
+            >Hall &amp; live music</span
+          ></span
+        ></a
+      >
+      <nav aria-label="Main navigation">
+        <a href="#event">The evening</a><a href="#questions">Good to know</a
+        ><button class="nav-book" data-book>
+          Choose your seat <span aria-hidden="true">↗</span>
+        </button>
+      </nav>
+      <button
+        class="menu-toggle"
+        aria-expanded="false"
+        aria-label="Open navigation"
+      >
+        Menu
+      </button>
+    </header>
+    <main id="top">
+      <section id="journey" aria-label="Explore the venue">
+        <div class="cinema-stage">
+          <canvas id="cinema" aria-hidden="true"></canvas>
+          <div class="cinema-scrim"></div>
+          <div class="media-state" role="status">
+            <span class="loading-mark"></span
+            ><span id="media-message">Opening the doors…</span
+            ><button id="media-retry" hidden>Retry scene</button>
+          </div>
+          <div id="scene-copy" class="scene-copy"></div>
+          <div class="scene-meta">
+            <span>Stillwater Sessions</span
+            ><span>Live, from the first moment.</span>
+          </div>
+          <button class="skip-seats" data-go="front">
+            Skip to seat selection <span aria-hidden="true">↗</span>
+          </button>
+          <div class="journey-controls">
+            <div class="chapter-label">
+              <span id="chapter-index">01</span
+              ><span id="chapter-title">The arrival</span>
+            </div>
+            <div class="journey-line"><span id="journey-bar"></span></div>
+            <button id="still-mode" aria-pressed="false">Still views</button>
+          </div>
+          <nav id="chapter-nav" aria-label="Tour chapters"></nav>
+          <div class="scene-hint" id="scene-hint">
+            Scroll to step inside <span aria-hidden="true">↓</span>
+          </div>
+        </div>
+      </section>
+      <section id="event" class="evening-section">
+        <div class="section-top">
+          <span>A little anticipation.</span
+          ><span>A lot to look forward to.</span>
+        </div>
+        <div class="evening-layout">
+          <div>
+            <p class="eyebrow">Stillwater Sessions · A demo evening</p>
+            <h2>Some nights<br />stay with you.</h2>
+            <p class="editorial-text">
+              A room built for listening. A seat that feels like yours. An
+              evening of live sound, shared with the people who came to feel it.
+            </p>
+            <button class="dark-button" data-book>
+              Find your place <span aria-hidden="true">↗</span>
+            </button>
+          </div>
+          <div class="event-facts">
+            <p class="note">
+              An imaginary event.<br />A fully explorable experience.
+            </p>
+            <dl>
+              <div>
+                <dt>The occasion</dt>
+                <dd id="event-name"></dd>
+              </div>
+              <div>
+                <dt>When</dt>
+                <dd id="event-date"></dd>
+              </div>
+              <div>
+                <dt>Where</dt>
+                <dd id="event-venue">
+                  Stillwater Hall<br /><small>Concept venue</small>
+                </dd>
+              </div>
+              <div>
+                <dt>The programme</dt>
+                <dd id="event-programme">
+                  An acoustic opening.<br />A live ensemble.<br />A closing set
+                  to remember.<small
+                    >Sample programme; no performers announced.</small
+                  >
+                </dd>
+              </div>
+            </dl>
+          </div>
+        </div>
+      </section>
+      <section id="questions" class="faq-section">
+        <div>
+          <p class="eyebrow">Before you arrive</p>
+          <h2>Good to know.</h2>
+          <p>A few details, so you can<br />settle into the evening.</p>
+        </div>
+        <div class="faq-list">
+          <details>
+            <summary>
+              When should I arrive?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              For this sample evening, doors open at 18:30 and the programme
+              begins at 19:30. Allow time to explore the lobby and find your
+              seat. All dates and times are illustrative.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Can I choose seats on either side?<span aria-hidden="true"
+                >+</span
+              >
+            </summary>
+            <p>
+              Yes. The seat map includes left, centre and right blocks across
+              front, middle and rear zones. Every seat has its own ID and sample
+              price. This schematic demonstration is not a verified floor plan
+              of the filmed hall.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Is this a real booking?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              No. Select seats, enter sample attendee details, simulate payment
+              and create a digital ticket. Nothing is charged or reserved. Demo
+              tickets are not valid for entry.
+            </p>
+          </details>
+          <details>
+            <summary>
+              Can I explore without motion?<span aria-hidden="true">+</span>
+            </summary>
+            <p>
+              Choose “Still views” for static scenes with chapter navigation.
+              The complete booking flow remains available. Your device’s
+              reduced-motion preference is respected automatically.
+            </p>
+          </details>
+        </div>
+      </section>
+      <section class="closing-section">
+        <p>There’s a place for you here.</p>
+        <h2>Your evening.<br />Your seat.</h2>
+        <button class="light-button" data-book>
+          Choose your seat <span aria-hidden="true">↗</span></button
+        ><span class="closing-note">Demo availability. No real payment.</span>
+      </section>
+    </main>
+    <footer class="site-footer">
+      <a class="wordmark" href="#top"
+        ><span class="mark" aria-hidden="true">Ⅲ</span
+        ><span
+          >Stillwater<span class="wordmark-sub"
+            >Hall &amp; live music</span
+          ></span
+        ></a
+      >
+      <div>
+        <a href="#event">The evening</a><a href="#questions">Good to know</a
+        ><button id="revisit-ticket" hidden>Your demo ticket</button
+        ><button data-book>Seat map</button>
+      </div>
+      <p>
+        A concert experience concept.<br />Footage supplied by the project
+        owner. Built with care.
+      </p>
+      <div class="footer-bottom">
+        <span>© 2026 Stillwater Hall concept</span
+        ><span>Sample event · Demo bookings only</span
+        ><button id="credits-open">Project credits</button>
+      </div>
+    </footer>
+    <aside
+      id="booking-bar"
+      class="booking-bar"
+      hidden
+      aria-label="Your selection"
+    >
+      <span><strong id="bar-count"></strong><small id="bar-seats"></small></span
+      ><strong id="bar-total"></strong
+      ><button data-book>
+        View selection <span aria-hidden="true">↗</span>
+      </button>
+    </aside>
+    <dialog id="booking-dialog" aria-labelledby="booking-title">
+      <button class="dialog-close" aria-label="Close booking">×</button>
+      <div id="booking-content"></div>
+    </dialog>
+    <dialog id="credits-dialog" aria-labelledby="credits-title">
+      <button class="dialog-close" aria-label="Close credits">×</button>
+      <p class="eyebrow">About the concept</p>
+      <h2 id="credits-title">Made for the moment.</h2>
+      <p>
+        Six AI-generated architectural films supplied by the project owner,
+        developed and approved during this concept. This is prerendered footage,
+        not an interactive 3D model.
+      </p>
+      <p>
+        Cormorant Garamond and Manrope are self-hosted under the SIL Open Font
+        License. QR codes use the MIT-licensed qrcode package. Event details and
+        the seat inventory are fictional demo content.
+      </p>
+      <p>
+        Seat selection uses a labelled schematic map because generated chairs
+        cannot be identified consistently across moving footage.
+      </p>
+      <button class="text-button" id="reset-demo">
+        Reset sample seats and ticket in this browser
+      </button>
+    </dialog>
+    <div id="announcement" class="sr-only" aria-live="polite"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

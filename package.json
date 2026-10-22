@@ -1,0 +1,19 @@
+{
+  "name": "stillwater-concert-experience",
+  "version": "2.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite build --configLoader native && vite preview --configLoader native --host 127.0.0.1 --port 5173",
+    "build": "vite build --configLoader native",
+    "preview": "vite preview --configLoader native --host 127.0.0.1",
+    "test": "node --test tests/core.test.js"
+  },
+  "dependencies": {
+    "@fontsource/cormorant-garamond": "5.3.0",
+    "@fontsource/manrope": "5.3.0",
+    "gsap": "3.13.0",
+    "qrcode": "1.5.4",
+    "vite": "7.1.7"
+  }
+}

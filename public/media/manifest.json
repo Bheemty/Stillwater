@@ -1,0 +1,44 @@
+[
+  {
+    "clip": 1,
+    "count": 480,
+    "fps": 24,
+    "desktopBytes": 26806462,
+    "mobileBytes": 13996044
+  },
+  {
+    "clip": 2,
+    "count": 240,
+    "fps": 24,
+    "desktopBytes": 6229016,
+    "mobileBytes": 3565668
+  },
+  {
+    "clip": 3,
+    "count": 192,
+    "fps": 24,
+    "desktopBytes": 4247500,
+    "mobileBytes": 2381748
+  },
+  {
+    "clip": 4,
+    "count": 192,
+    "fps": 24,
+    "desktopBytes": 7388658,
+    "mobileBytes": 4205926
+  },
+  {
+    "clip": 5,
+    "count": 192,
+    "fps": 24,
+    "desktopBytes": 9045712,
+    "mobileBytes": 5375242
+  },
+  {
+    "clip": 6,
+    "count": 192,
+    "fps": 24,
+    "desktopBytes": 5961134,
+    "mobileBytes": 3521434
+  }
+]
