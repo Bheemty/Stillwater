@@ -4,41 +4,53 @@
     "count": 480,
     "fps": 24,
     "desktopBytes": 26806462,
-    "mobileBytes": 13996044
+    "mobileBytes": 13996044,
+    "mobile640Bytes": 11045930,
+    "mobile640Count": 480
   },
   {
     "clip": 2,
     "count": 240,
     "fps": 24,
     "desktopBytes": 6229016,
-    "mobileBytes": 3565668
+    "mobileBytes": 3565668,
+    "mobile640Bytes": 2916176,
+    "mobile640Count": 240
   },
   {
     "clip": 3,
     "count": 192,
     "fps": 24,
     "desktopBytes": 4247500,
-    "mobileBytes": 2381748
+    "mobileBytes": 2381748,
+    "mobile640Bytes": 1957108,
+    "mobile640Count": 192
   },
   {
     "clip": 4,
     "count": 192,
     "fps": 24,
     "desktopBytes": 7388658,
-    "mobileBytes": 4205926
+    "mobileBytes": 4205926,
+    "mobile640Bytes": 3437488,
+    "mobile640Count": 192
   },
   {
     "clip": 5,
     "count": 192,
     "fps": 24,
     "desktopBytes": 9045712,
-    "mobileBytes": 5375242
+    "mobileBytes": 5375242,
+    "mobile640Bytes": 4438294,
+    "mobile640Count": 192
   },
   {
     "clip": 6,
     "count": 192,
     "fps": 24,
     "desktopBytes": 5961134,
-    "mobileBytes": 3521434
+    "mobileBytes": 3521434,
+    "mobile640Bytes": 2963988,
+    "mobile640Count": 192
   }
 ]

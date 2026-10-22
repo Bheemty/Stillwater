@@ -12,12 +12,19 @@ export const event = {
   ],
   fee: 200,
 };
+const wholeMoney = new Intl.NumberFormat("en-GB", {
+  style: "currency",
+  currency: event.currency,
+  maximumFractionDigits: 0,
+});
+const fractionalMoney = new Intl.NumberFormat("en-GB", {
+  style: "currency",
+  currency: event.currency,
+  minimumFractionDigits: 2,
+  maximumFractionDigits: 2,
+});
 export const money = (p) =>
-  new Intl.NumberFormat("en-GB", {
-    style: "currency",
-    currency: event.currency,
-    maximumFractionDigits: p % 100 ? 2 : 0,
-  }).format(p / 100);
+  (p % 100 ? fractionalMoney : wholeMoney).format(p / 100);
 export const zones = {
   front: {
     name: "Front",

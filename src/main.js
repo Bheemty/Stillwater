@@ -42,6 +42,7 @@ const copies = {
 };
 function sceneChanged(key) {
   currentScene = key;
+  booking.setTourZone(key);
   const copy = copies[key];
   const el = document.querySelector("#scene-copy");
   el.className = `scene-copy ${copy.class}`;
@@ -96,19 +97,18 @@ header.querySelectorAll("a, [data-book]").forEach((a) =>
     menu.setAttribute("aria-label", "Open navigation");
   }),
 );
+// The observer computes header crossing; no per-scroll layout read or DOM write.
 new IntersectionObserver(
-  (entries) => header.classList.toggle("on-paper", entries[0].isIntersecting),
-  { rootMargin: "-1px 0px -85% 0px" },
+  (entries) => {
+    header.classList.toggle("on-paper", entries[0].boundingClientRect.top < 95);
+  },
+  { rootMargin: "-95px 0px 0px 0px" },
 ).observe(document.querySelector("#event"));
-const eventTop = () =>
-  document.querySelector("#event").getBoundingClientRect().top;
-window.addEventListener(
-  "scroll",
-  () => header.classList.toggle("on-paper", eventTop() < 95),
-  { passive: true },
-);
 const credits = document.querySelector("#credits-dialog");
 document.querySelector("#credits-open").onclick = () => credits.showModal();
 credits.querySelector(".dialog-close").onclick = () => credits.close();
 // Read-only diagnostics for local verification; no user data or payment details.
 window.concertDiagnostics = () => journey.stats();
+
+if (new URLSearchParams(location.search).has("measure"))
+  import("./lab").then((m) => m.startLab());

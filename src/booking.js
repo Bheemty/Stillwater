@@ -34,9 +34,9 @@ export function startBooking() {
     zone = "front",
     view = innerWidth < 700 ? "list" : "map",
     focused = null,
-    pinnedSeat = null,
     step = "seats",
     attendee = { name: "", email: "" },
+    tourZone = null,
     busy = false,
     returnFocus,
     renderedStep;
@@ -76,31 +76,85 @@ export function startBooking() {
     const s = seatById.get(id);
     if (!s || s.status === "unavailable") return;
     selected.has(id) ? selected.delete(id) : selected.add(id);
+    const previousStep = step;
     if (!selected.size && step !== "seats") step = "seats";
     sync();
-    const focusId = focused;
-    render();
-    focused = focusId;
+    if (previousStep !== step) render();
+    else updateSelection(id);
     updateDetails();
     announce(
       `${id} ${selected.has(id) ? "selected" : "removed"}. Total ${money(totals(selected).total)}.`,
     );
-    document
-      .querySelector(`[data-seat="${id}"]`)
-      ?.focus({ preventScroll: true });
+    const focusTarget =
+      content.querySelector(`[data-seat="${id}"]`) ||
+      content.querySelector("[data-remove]") ||
+      content.querySelector('.zone-tabs [aria-pressed="true"], #back-seats');
+    focusTarget?.focus({ preventScroll: true });
   }
   const summary = () => {
     const t = totals(selected);
     return `<aside class="selection-summary"><p class="eyebrow">Your evening</p><h3>${t.selected.length ? t.selected.length + " " + (t.selected.length === 1 ? "seat" : "seats") + " with your name on it." : "A place to call yours."}</h3><div class="selected-seats">${t.selected.length ? t.selected.map((s) => `<div><span><strong>${s.id}</strong> ${zones[s.zone].name} · ${s.block}</span><span>${money(s.price)} <button data-remove="${s.id}" aria-label="Remove seat ${s.id}">×</button></span></div>`).join("") : "<p>Choose a seat from any block.<br>Your selection stays with you as you explore.</p>"}</div><dl class="price-summary"><div><dt>Seats</dt><dd>${money(t.subtotal)}</dd></div><div><dt>Sample booking fee <small>${money(event.fee)} per seat</small></dt><dd>${money(t.fees)}</dd></div><div class="total-line"><dt>Total</dt><dd>${money(t.total)}</dd></div></dl><button class="dark-button wide" id="checkout-next" ${t.selected.length ? "" : "disabled"}>Continue to details <span aria-hidden="true">↗</span></button><p class="micro">Demo only. Nothing is reserved or charged.</p></aside>`;
   };
+  function liveSummary() {
+    const t = totals(selected);
+    return `<strong>${t.selected.length} ${t.selected.length === 1 ? "seat" : "seats"} selected</strong><span>Booking total <strong>${money(t.total)}</strong> <small>including ${money(t.fees)} fees</small></span>`;
+  }
+  function updateSelection(id) {
+    const s = seatById.get(id),
+      b = content.querySelector(`[data-seat="${id}"]`);
+    if (b && s) {
+      b.classList.toggle("selected", selected.has(id));
+      b.classList.toggle("available", !selected.has(id));
+      b.setAttribute("aria-pressed", String(selected.has(id)));
+      b.setAttribute(
+        "aria-label",
+        `Seat ${s.id}, row ${s.row}, ${zones[s.zone].name} zone, ${s.block} block, ${money(s.price)}, ${status(s)}`,
+      );
+      b.querySelector(".seat-icon").textContent = selected.has(id) ? "✓" : "○";
+      const label = b.querySelector("small");
+      if (label) label.textContent = status(s);
+    }
+    const summaryBox = content.querySelector(".selection-summary");
+    if (summaryBox) summaryBox.outerHTML = summary();
+    const live = content.querySelector("#booking-live");
+    if (live) live.innerHTML = liveSummary();
+    bindSummary();
+  }
+  function bindSummary() {
+    content
+      .querySelectorAll("[data-remove]")
+      .forEach((b) => (b.onclick = () => toggle(b.dataset.remove)));
+    const next = content.querySelector("#checkout-next");
+    if (next && step !== "seats") next.hidden = true;
+    if (next)
+      next.onclick = () => {
+        if (selected.size) {
+          step = "details";
+          render();
+          document.querySelector("#attendee-name").focus();
+        }
+      };
+  }
+  function overview() {
+    return `<div class="hall-overview" role="group" aria-label="Whole-hall overview, schematic"><div class="overview-caption"><strong>Whole-hall overview</strong><span>Stage ahead ↑</span></div><div class="overview-stage">STAGE</div><div class="overview-labels"><span>Zone</span><span>Left block</span><span>Aisle</span><span>Centre block</span><span>Aisle</span><span>Right block</span></div>${Object.entries(
+      zones,
+    )
+      .map(
+        ([k, z]) =>
+          `<button class="overview-zone" data-zone="${k}" aria-label="View ${z.name} zone" ${zone === k ? 'aria-current="true"' : ""}><span>${z.name}</span><i></i><small>↕</small><i></i><small>↕</small><i></i></button>`,
+      )
+      .join(
+        "",
+      )}<p class="micro">Map view: ${zones[zone].name} zone${tourZone ? ` · Tour paused at ${zones[tourZone].name.toLowerCase()} zone` : ""}. Schematic orientation only; not a seat-for-seat match to the footage.</p></div>`;
+  }
   function seatButton(s, list = false) {
-    return `<button class="seat ${list ? "seat-list-item" : ""} ${status(s).toLowerCase()}" data-seat="${s.id}" aria-label="Seat ${s.id}, row ${s.row}, ${zones[s.zone].name}, ${s.block}, ${money(s.price)}, ${status(s)}" aria-pressed="${selected.has(s.id)}" aria-disabled="${s.status === "unavailable"}"><span class="seat-icon" aria-hidden="true">${s.status === "unavailable" ? "×" : selected.has(s.id) ? "✓" : "○"}</span><span>${list ? `${s.id} · ${s.block}` : s.number}</span>${list ? `<span>${money(s.price)} <small>${status(s)}</small></span>` : ""}</button>`;
+    return `<button class="seat ${list ? "seat-list-item" : ""} ${status(s).toLowerCase()}" data-seat="${s.id}" aria-label="Seat ${s.id}, row ${s.row}, ${zones[s.zone].name} zone, ${s.block} block, ${money(s.price)}, ${status(s)}" aria-pressed="${selected.has(s.id)}" aria-disabled="${s.status === "unavailable"}" ${s.status === "unavailable" ? "disabled" : ""}><span class="seat-icon" aria-hidden="true">${s.status === "unavailable" ? "×" : selected.has(s.id) ? "✓" : "○"}</span><span>${list ? `${s.id} · ${s.block}` : s.number}</span>${list ? `<span>${money(s.price)} <small>${status(s)}</small></span>` : ""}</button>`;
   }
   function map() {
     const z = zones[zone];
     return `<div class="seat-map-head"><div><h3>${z.name} rows</h3><p>${z.description}</p></div><span>${money(z.price)} / seat</span></div><div class="view-switch" aria-label="Seat display"><button data-view="map" aria-pressed="${view === "map"}">Seat map</button><button data-view="list" aria-pressed="${view === "list"}">Accessible list</button></div>${
       view === "map"
-        ? `<p class="micro map-guidance">Select a chair to inspect it. Map is schematic; it is not overlaid on the film.</p><div class="map-scroll" tabindex="0" aria-label="Seat map, scroll horizontally on narrow screens"><div class="seat-map"><div class="stage-arc">Stage</div><div class="block-labels"><span>Left</span><span>Centre</span><span>Right</span></div>${z.rows
+        ? `<p class="micro map-guidance">Select multiple seats. Tap a selected seat to remove it.</p><div class="map-scroll" tabindex="0" aria-label="Seat map, scroll horizontally on narrow screens"><div class="seat-map"><div class="stage-arc">Stage</div><div class="block-labels"><span>Left</span><span>Centre</span><span>Right</span></div>${z.rows
             .map(
               (row) =>
                 `<div class="seat-row"><span class="row-label">${row}</span>${seats
@@ -128,13 +182,13 @@ export function startBooking() {
     const s = seatById.get(focused);
     if (!s) {
       box.innerHTML =
-        "<div><strong>Find the seat that feels right.</strong><p>Hover, focus or tap a seat for its details.</p></div>";
+        "<div><strong>Find the seat that feels right.</strong><p>Hover or focus for details. Tap to select or remove.</p></div>";
       return;
     }
-    box.innerHTML = `<div><strong>Seat ${s.id}</strong><p>Row ${s.row} · ${zones[s.zone].name} zone · ${s.block} block</p><small>${status(s)} · ${money(s.price)} + ${money(event.fee)} sample fee</small></div><button class="dark-button" id="toggle-seat" ${s.status === "unavailable" ? "disabled" : ""}>${s.status === "unavailable" ? "Unavailable" : selected.has(s.id) ? "Deselect seat" : "Select seat"}</button>`;
-    document.querySelector("#toggle-seat").onclick = () => toggle(s.id);
+    box.innerHTML = `<div><strong>Seat ${s.id}</strong><p>Row ${s.row} · ${zones[s.zone].name} zone · ${s.block} block</p><small>${status(s)} · ${money(s.price)} + ${money(event.fee)} sample fee</small></div>`;
   }
   function inspect(id) {
+    if (focused === id) return;
     focused = id;
     updateDetails();
     document
@@ -151,7 +205,7 @@ export function startBooking() {
       renderTicket();
       return;
     }
-    content.innerHTML = `<div class="booking-heading"><p class="eyebrow">${event.name} · Demo booking</p><h2 id="booking-title">${step === "seats" ? "Find your place." : step === "details" ? "Make it your evening." : "One last look."}</h2><p>${step === "seats" ? "Left, centre or right. Every seat has a story." : step === "details" ? "Use sample details. No information is sent anywhere." : "A simulated payment. A little piece of anticipation."}</p></div><div class="booking-steps" aria-label="Booking steps"><span ${step === "seats" ? 'aria-current="step"' : ""}>1. Your seats</span><span ${step === "details" ? 'aria-current="step"' : ""}>2. Your details</span><span ${step === "payment" ? 'aria-current="step"' : ""}>3. Demo payment</span></div><div class="booking-layout">${
+    content.innerHTML = `<div class="booking-heading"><p class="eyebrow">${event.name} · Demo booking</p><h2 id="booking-title">${step === "seats" ? "Find your place." : step === "details" ? "Make it your evening." : "One last look."}</h2><p>${step === "seats" ? "Select multiple seats. Tap a selected seat to remove it." : step === "details" ? "Use sample details. No information is sent anywhere." : "A simulated payment. A little piece of anticipation."}</p></div><div class="booking-live" id="booking-live" role="status" aria-live="polite" aria-atomic="true">${liveSummary()}</div><div class="booking-steps" aria-label="Booking steps"><span ${step === "seats" ? 'aria-current="step"' : ""}>1. Your seats</span><span ${step === "details" ? 'aria-current="step"' : ""}>2. Your details</span><span ${step === "payment" ? 'aria-current="step"' : ""}>3. Demo payment</span></div><div class="booking-layout">${
       step === "seats"
         ? `<div class="seat-workspace"><div class="zone-tabs" role="group" aria-label="Seating zones">${Object.entries(
             zones,
@@ -162,7 +216,7 @@ export function startBooking() {
             )
             .join(
               "",
-            )}</div><div class="legend"><span>○ Available</span><span>× Unavailable</span><span>✓ Selected</span></div>${map()}<p class="micro">Sample availability · 72 demo seats across three blocks</p><button class="text-button resume-tour">Continue exploring the venue</button></div>`
+            )}</div>${overview()}<div class="legend"><span>○ Available</span><span>× Unavailable</span><span>✓ Selected</span></div>${map()}<p class="micro">Demo selection — selected rows only. These 72 sample seats are a bookable subset, not the hall’s capacity.</p><button class="text-button resume-tour">Continue exploring the venue</button></div>`
         : step === "details"
           ? `<div class="details-panel"><button class="text-button" id="back-seats">← Back to seats</button><form id="attendee-form" novalidate><label for="attendee-name">Attendee name</label><input id="attendee-name" name="name" autocomplete="name" maxlength="80" value="${escape(attendee.name)}" placeholder="e.g. Alex Morgan" aria-describedby="name-error" required><p class="field-error" id="name-error"></p><label for="attendee-email">Email address</label><input id="attendee-email" name="email" type="email" autocomplete="email" maxlength="160" value="${escape(attendee.email)}" placeholder="alex@example.com" aria-describedby="email-error" required><p class="field-error" id="email-error"></p><p class="micro">Email is used for this on-screen demo only. No email is sent or saved.</p><button class="dark-button wide" type="submit">Review demo payment <span aria-hidden="true">↗</span></button></form></div>`
           : `<div class="details-panel"><button class="text-button" id="back-details">← Back to details</button><h3>Ready when you are.</h3><p class="attendee-review">${escape(attendee.name)}<br><small>${escape(attendee.email)}</small></p><div class="demo-payment"><span aria-hidden="true">◇</span><div><strong>Demo payment</strong><p>No card details. No charge.<br>This creates a sample digital ticket.</p></div></div><button class="dark-button wide" id="pay-demo" ${busy ? "disabled" : ""}>${busy ? "Creating your demo ticket…" : `Complete demo booking · ${money(t.total)}`}</button><p class="micro">Demo ticket — not valid for entry.</p><p class="field-error" id="payment-error" role="alert"></p></div>`
@@ -172,9 +226,10 @@ export function startBooking() {
         (b.onclick = () => {
           zone = b.dataset.zone;
           focused = null;
-          pinnedSeat = null;
           render();
-          document.querySelector(`[data-zone="${zone}"]`).focus();
+          content
+            .querySelector(`.zone-tabs [data-zone="${zone}"]`)
+            .focus({ preventScroll: true });
         }),
     );
     content.querySelectorAll("[data-view]").forEach(
@@ -186,36 +241,15 @@ export function startBooking() {
         }),
     );
     content.querySelectorAll("[data-seat]").forEach((b) => {
-      b.onmouseenter = () => {
-        if (!pinnedSeat) inspect(b.dataset.seat);
-      };
-      b.onfocus = () => {
-        pinnedSeat = b.dataset.seat;
-        inspect(b.dataset.seat);
-      };
+      b.onpointerenter = () => inspect(b.dataset.seat);
+      b.onfocus = () => inspect(b.dataset.seat);
       b.onclick = () => {
-        pinnedSeat = b.dataset.seat;
         inspect(b.dataset.seat);
+        toggle(b.dataset.seat);
       };
-      b.onkeydown = (e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          pinnedSeat = b.dataset.seat;
-          inspect(b.dataset.seat);
-          toggle(b.dataset.seat);
-        }
-      };
+      // Native buttons provide Enter/Space activation exactly once.
     });
-    content
-      .querySelectorAll("[data-remove]")
-      .forEach((b) => (b.onclick = () => toggle(b.dataset.remove)));
-    content.querySelector("#checkout-next").onclick = () => {
-      if (t.selected.length) {
-        step = "details";
-        render();
-        document.querySelector("#attendee-name").focus();
-      }
-    };
+    bindSummary();
     content.querySelector(".resume-tour")?.addEventListener("click", close);
     content.querySelector("#back-seats")?.addEventListener("click", () => {
       step = "seats";
@@ -362,5 +396,10 @@ export function startBooking() {
     announce("Sample seats and demo ticket reset.");
   };
   sync();
-  return { open };
+  return {
+    open,
+    setTourZone(value) {
+      tourZone = zones[value] ? value : null;
+    },
+  };
 }
