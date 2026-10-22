@@ -21,6 +21,10 @@ export function startJourney(onScene) {
     pending = new Set(),
     failed = new Set(),
     posters = new Map();
+  const progressBar = document.querySelector("#journey-bar"),
+    chapterIndex = document.querySelector("#chapter-index"),
+    chapterTitle = document.querySelector("#chapter-title");
+  let lastChapter = "";
   let queue = [],
     active = 0,
     target = 0,
@@ -29,6 +33,8 @@ export function startJourney(onScene) {
     lastDraw = "",
     width = 0,
     height = 0,
+    sectionTop = 0,
+    sectionBottom = 0,
     trigger,
     still = matchMedia("(prefers-reduced-motion:reduce)").matches,
     scene = "",
@@ -56,6 +62,7 @@ export function startJourney(onScene) {
     for (const k of ranked.slice(maxCache)) cache.delete(k);
   }
   function pump() {
+    if (disposed || document.hidden || document.querySelector("dialog[open]")) return;
     while (active < 4 && queue.length) {
       const t = queue.shift(),
         k = key(t.c, t.f);
@@ -70,14 +77,12 @@ export function startJourney(onScene) {
         if (disposed) return;
         cache.set(k, img);
         trim();
-        lastDraw = "";
         pump();
       };
       img.onerror = () => {
         pending.delete(k);
         active--;
         failed.add(k);
-        lastDraw = "";
         pump();
       };
       img.src = url(t.c, t.f);
@@ -138,6 +143,11 @@ export function startJourney(onScene) {
     const now = performance.now(),
       dt = Math.min(0.1, (now - last) / 1000);
     last = now;
+    // Leave the canvas intact while it is covered, offscreen, or backgrounded.
+    if (document.hidden || document.querySelector("dialog[open]") ||
+        innerHeight + scrollY < sectionTop ||
+        scrollY > sectionBottom) return;
+    pump();
     current = still
       ? target
       : current + (target - current) * (1 - Math.exp(-dt * 15));
@@ -150,10 +160,11 @@ export function startJourney(onScene) {
       lastRequested = k;
     }
     const img = find(pos.clip, f) || posters.get(pos.clip);
-    if (img && lastDraw !== k) {
+    const drawKey = img ? `${k}:${img.src}` : "";
+    if (img && lastDraw !== drawKey) {
       draw(img);
       framesDrawn++;
-      lastDraw = k;
+      lastDraw = drawKey;
       state.classList.add("ready");
       stage.dataset.clip = pos.clip;
       stage.dataset.frame = f;
@@ -171,15 +182,17 @@ export function startJourney(onScene) {
       onScene(scene);
       stage.dataset.scene = scene;
     }
-    document.querySelector("#journey-bar").style.transform =
+    progressBar.style.transform =
       `scaleX(${Math.max(0, Math.min(1, current / journeyLength))})`;
     const ch =
       [...chapters].reverse().find((c) => current >= c.progress - 0.3) ||
       chapters[0];
-    document.querySelector("#chapter-index").textContent = String(
+    if (lastChapter === ch.key) return;
+    lastChapter = ch.key;
+    chapterIndex.textContent = String(
       chapters.indexOf(ch) + 1,
     ).padStart(2, "0");
-    document.querySelector("#chapter-title").textContent = ch.name;
+    chapterTitle.textContent = ch.name;
     document
       .querySelectorAll("#chapter-nav button")
       .forEach((b) =>
@@ -187,6 +200,8 @@ export function startJourney(onScene) {
       );
   }
   function resize() {
+    sectionTop = section.offsetTop;
+    sectionBottom = sectionTop + section.offsetHeight;
     width = stage.clientWidth;
     height = stage.clientHeight;
     const dpr = Math.min(devicePixelRatio || 1, 1.5);
