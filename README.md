@@ -4,7 +4,7 @@ A cinematic scroll journey using the six supplied films, followed by event infor
 
 ## Preview
 
-The production preview is running at **http://127.0.0.1:5173/** during delivery. A compiled `dist/` is included.
+The local preview runs at **http://127.0.0.1:5173/**. Build output is generated locally and is excluded from Git.
 
 For a normal Node.js installation (22.12+; tested with Node 24):
 
@@ -17,7 +17,7 @@ npm run preview
 
 Open the address Vite prints, normally http://127.0.0.1:4173/. `npm run dev` builds and serves a preview on port 5173; it intentionally does not use the dependency prebundler that failed in this Windows sandbox. After editing source, restart it to rebuild. `pnpm install` also works with the included lockfile.
 
-To serve the included build without installing dependencies:
+After building, you can also serve the generated build with Python:
 
 ```sh
 python -m http.server 5173 --bind 127.0.0.1 --directory dist
@@ -70,3 +70,20 @@ The films are user-supplied AI footage. Architectural details, chair spacing and
 ## Skills and attribution
 
 Installed guidance inspected and applied: `frontend-design`, `scroll-video-website`, `gsap-scrolltrigger`, `performance`, `playwright`. Browser testing used the available in-app browser Playwright controls; a separate DevTools trace/field telemetry capability was unavailable. FFmpeg was supplied through the installed `imageio-ffmpeg` package for local media work. See `ATTRIBUTION.md` and `public/licenses/`.
+
+## GitHub and deployment
+
+Repository: https://github.com/Bheemty/Stillwater
+
+```sh
+git clone https://github.com/Bheemty/Stillwater.git
+cd Stillwater
+npm install
+npm test
+npm run build
+npm run preview
+```
+
+The `main` branch tracks `origin/main`. Use `git pull --ff-only` to retrieve updates, and `git push` to publish committed changes. GitHub authentication is required for writing; use Git Credential Manager or GitHub CLI rather than storing credentials in source files or remote URLs.
+
+Import this repository into Vercel as a Vite project. The included `vercel.json` specifies `npm run build` and the `dist` output folder. No environment variables or backend services are required for this demo. Optimized media frames and license notices are committed; original video files, dependencies, generated builds, local screenshots and review artifacts are excluded.
