@@ -42,7 +42,7 @@ Serve through HTTP, not by opening `index.html` as a local file. Stop an existin
 
 ## Implementation
 
-The existing Vite/plain-JavaScript stack was retained. Three.js has been removed from runtime dependencies. GSAP ScrollTrigger supplies the single global timeline, and one GSAP ticker advances the smoothed canvas playhead. There is no wheel interception, custom scroll engine, autoplay, audio or invented venue geometry.
+The existing Vite/plain-JavaScript stack was retained. Three.js 0.180.0 now renders the approved film frames through WebGL using an orthographic camera, one textured plane and one GPU texture. Canvas 2D is retained only as a fallback if WebGL is unavailable or its context is lost. This remains prerendered footage, not a navigable 3D venue model. GSAP ScrollTrigger supplies the single global timeline, and one GSAP ticker advances the smoothed canvas playhead. There is no wheel interception, custom scroll engine, autoplay, audio or invented venue geometry.
 
 The 62-second source set is converted at its native **24 fps** into **1,488 WebP frames per variant**: desktop 1280×720 and mobile 768×432. Full frame payloads are about **59.7 MB desktop / 33.0 MB mobile**, but the page loads a current-frame window and adjacent boundaries progressively. It does not download or retain the entire sequence before display. The application cache is capped at **38 desktop / 26 mobile image references**, plus six small scene posters. Browser-managed caches are outside that cap.
 
@@ -53,7 +53,8 @@ Frames preserve bidirectional seeking without video decoder/keyframe stalls. The
 | File | Responsibility |
 |---|---|
 | `src/data.js` | Sample event, programme, prices, availability, seats, media ranges and scroll weights |
-| `src/media.js` | Progressive frame loader, bounded cache, canvas sizing, global scroll timeline, still mode |
+| `src/media.js` | Progressive frame loader, bounded cache, global scroll timeline, still mode |
+| `src/film-renderer.js` | Three.js film display, colour space, viewport composition, Canvas fallback and GPU disposal |
 | `src/main.js` | Scene-specific HTML copy, navigation, closing information |
 | `src/booking.js` | Selection, validation, local persistence, checkout, QR and ticket |
 | `src/style.css` | Identity, responsive composition, dialogs and print styles |
@@ -92,3 +93,8 @@ The `main` branch tracks `origin/main`. Use `git pull --ff-only` to retrieve upd
 Import this repository into Vercel as a Vite project. The included `vercel.json` specifies `npm run build` and the `dist` output folder. No environment variables or backend services are required for this demo. Optimized media frames and license notices are committed; original video files, dependencies, generated builds, local screenshots and review artifacts are excluded.
 
 
+
+
+Renderer verification: the active canvas exposes `data-renderer="three-webgl"` and its Three.js revision. Append `?renderer=canvas` to a local preview URL to exercise the same Canvas fallback drawing path without requiring a GPU failure. No second animation loop is introduced; frames are rendered by the existing GSAP ticker. No 3D venue asset was added.
+
+Three.js renderer verification (22 October 2026): all eight Node tests and the production build passed. Local browser checks confirmed WebGL r180, one GPU texture and one draw call, stage/rear chapter navigation and reverse scrolling, immediate multi-seat toggles, deselection and cross-zone totals (£174 for two front seats; £154 for one front and one middle seat, including fees). Desktop and 390×844 portrait screenshots were inspected. Forced Canvas fallback retained the same composition. Browser warning/error logs were empty. Mobile checks used browser viewport emulation, not a physical phone. Actual GPU context loss was not induced. This renderer change adds Three.js to the downloaded JavaScript; it does not claim a loading or scrolling performance improvement.

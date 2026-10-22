@@ -1,11 +1,15 @@
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { journeyLength, locate, chapters, segments } from "./data";
+import { createFilmRenderer } from "./film-renderer";
 gsap.registerPlugin(ScrollTrigger);
 const base = import.meta.env.BASE_URL;
 export function startJourney(onScene) {
   const canvas = document.querySelector("#cinema"),
-    ctx = canvas.getContext("2d", { alpha: false }),
+    display = createFilmRenderer(canvas, {
+      forceCanvas:
+        new URLSearchParams(location.search).get("renderer") === "canvas",
+    }),
     section = document.querySelector("#journey"),
     stage = section.firstElementChild,
     state = document.querySelector(".media-state"),
@@ -127,22 +131,7 @@ export function startJourney(onScene) {
     img.src = `${base}media/${c}-start.webp`;
   }
   function draw(img) {
-    ctx.globalAlpha = 1;
-    let dw, dh;
-    if (width / height > 16 / 9) {
-      dw = width;
-      dh = (width * 9) / 16;
-    } else {
-      dh = height;
-      dw = (height * 16) / 9;
-    }
-    if (width < 700 || width / height < 1.05) {
-      dw = width;
-      dh = (width * 9) / 16;
-      ctx.fillStyle = "#20251f";
-      ctx.fillRect(0, 0, width, height);
-      ctx.drawImage(img, 0, Math.round(height * 0.32), dw, dh);
-    } else ctx.drawImage(img, (width - dw) / 2, (height - dh) / 2, dw, dh);
+    display.draw(img);
   }
   let lastRequested = "";
   function tick() {
@@ -201,9 +190,7 @@ export function startJourney(onScene) {
     width = stage.clientWidth;
     height = stage.clientHeight;
     const dpr = Math.min(devicePixelRatio || 1, 1.5);
-    canvas.width = Math.round(width * dpr);
-    canvas.height = Math.round(height * dpr);
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    display.resize(width, height, dpr);
     lastDraw = "";
   }
   function setup() {
@@ -282,6 +269,7 @@ export function startJourney(onScene) {
     "pagehide",
     () => {
       disposed = true;
+      display.dispose();
       gsap.ticker.remove(tick);
       trigger?.kill();
       window.removeEventListener("resize", resize);
@@ -294,6 +282,7 @@ export function startJourney(onScene) {
       return still;
     },
     stats: () => ({
+      ...display.stats(),
       cached: cache.size,
       pending: pending.size,
       framesDrawn,
