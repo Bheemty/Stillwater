@@ -32,7 +32,7 @@ Serve through HTTP, not by opening `index.html` as a local file. Stop an existin
 
 - Scroll forwards and backwards through all six clips. The dots jump to meaningful chapter holds. “Still views” provides static chapter navigation; the OS reduced-motion preference enables that mode on initial load.
 - At front, middle and rear holds, open the corresponding seat zone. The camera never has clickable targets attached to moving film.
-- The map is **explicitly schematic**, not a verified venue plan. It covers left, centre and right seats. Mobile starts with the accessible list; a horizontally scrollable map is also available. Hover previews an unpinned seat; clicking or focusing pins its details so scrolling to the action cannot accidentally change the seat. Click another seat to inspect it.
+- The map is **explicitly schematic**, not a verified venue plan. It covers left, centre and right seats. Mobile starts with the accessible list; a horizontally scrollable map is also available. Hover previews an unpinned seat; focus shows its details. Click or tap an available seat to select it immediately, and click or tap again to remove it. There is no separate Select seat button. Multiple selections persist across zones.
 - Available = ○, unavailable = ×, selected = ✓, with accompanying labels. Unavailable seats remain keyboard-focusable for details but cannot be selected.
 - Select seats across zones and check the summary. Prices are £85/£65/£45, plus a clearly stated £2 sample fee per selected seat. All money calculations use integer pence.
 - Enter sample attendee details. There is no real card form, payment, email delivery, backend reservation or scarcity claim.

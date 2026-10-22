@@ -100,7 +100,7 @@ export function startBooking() {
     const z = zones[zone];
     return `<div class="seat-map-head"><div><h3>${z.name} rows</h3><p>${z.description}</p></div><span>${money(z.price)} / seat</span></div><div class="view-switch" aria-label="Seat display"><button data-view="map" aria-pressed="${view === "map"}">Seat map</button><button data-view="list" aria-pressed="${view === "list"}">Accessible list</button></div>${
       view === "map"
-        ? `<p class="micro map-guidance">Select a chair to inspect it. Map is schematic; it is not overlaid on the film.</p><div class="map-scroll" tabindex="0" aria-label="Seat map, scroll horizontally on narrow screens"><div class="seat-map"><div class="stage-arc">Stage</div><div class="block-labels"><span>Left</span><span>Centre</span><span>Right</span></div>${z.rows
+        ? `<p class="micro map-guidance">Select multiple seats. Tap a selected seat to remove it. Map is schematic.</p><div class="map-scroll" tabindex="0" aria-label="Seat map, scroll horizontally on narrow screens"><div class="seat-map"><div class="stage-arc">Stage</div><div class="block-labels"><span>Left</span><span>Centre</span><span>Right</span></div>${z.rows
             .map(
               (row) =>
                 `<div class="seat-row"><span class="row-label">${row}</span>${seats
@@ -128,11 +128,10 @@ export function startBooking() {
     const s = seatById.get(focused);
     if (!s) {
       box.innerHTML =
-        "<div><strong>Find the seat that feels right.</strong><p>Hover, focus or tap a seat for its details.</p></div>";
+        "<div><strong>Find the seat that feels right.</strong><p>Hover or focus for details. Tap seats to select or remove.</p></div>";
       return;
     }
-    box.innerHTML = `<div><strong>Seat ${s.id}</strong><p>Row ${s.row} · ${zones[s.zone].name} zone · ${s.block} block</p><small>${status(s)} · ${money(s.price)} + ${money(event.fee)} sample fee</small></div><button class="dark-button" id="toggle-seat" ${s.status === "unavailable" ? "disabled" : ""}>${s.status === "unavailable" ? "Unavailable" : selected.has(s.id) ? "Deselect seat" : "Select seat"}</button>`;
-    document.querySelector("#toggle-seat").onclick = () => toggle(s.id);
+    box.innerHTML = `<div><strong>Seat ${s.id}</strong><p>Row ${s.row} · ${zones[s.zone].name} zone · ${s.block} block</p><small>${status(s)} · ${money(s.price)} + ${money(event.fee)} sample fee</small></div>`;
   }
   function inspect(id) {
     focused = id;
@@ -196,6 +195,7 @@ export function startBooking() {
       b.onclick = () => {
         pinnedSeat = b.dataset.seat;
         inspect(b.dataset.seat);
+        toggle(b.dataset.seat);
       };
       b.onkeydown = (e) => {
         if (e.key === "Enter" || e.key === " ") {
