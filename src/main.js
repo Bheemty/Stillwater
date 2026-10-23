@@ -7,6 +7,7 @@ import "./style.css";
 import { startJourney } from "./media";
 import { startBooking } from "./booking";
 import { event, zones, money } from "./data";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 const booking = startBooking();
 let currentScene = "arrival";
 const copies = {
@@ -96,17 +97,23 @@ header.querySelectorAll("a, [data-book]").forEach((a) =>
     menu.setAttribute("aria-label", "Open navigation");
   }),
 );
-new IntersectionObserver(
-  (entries) => header.classList.toggle("on-paper", entries[0].isIntersecting),
-  { rootMargin: "-1px 0px -85% 0px" },
-).observe(document.querySelector("#event"));
-const eventTop = () =>
-  document.querySelector("#event").getBoundingClientRect().top;
-window.addEventListener(
-  "scroll",
-  () => header.classList.toggle("on-paper", eventTop() < 95),
-  { passive: true },
-);
+const eventSection = document.querySelector("#event");
+let eventBoundary = 0, paperHeader;
+function updateHeader() {
+  const paper = scrollY > eventBoundary;
+  if (paper !== paperHeader) {
+    paperHeader = paper;
+    header.classList.toggle("on-paper", paper);
+  }
+}
+function measureHeaderBoundary() {
+  eventBoundary = eventSection.getBoundingClientRect().top + scrollY - 95;
+  updateHeader();
+}
+measureHeaderBoundary();
+window.addEventListener("scroll", updateHeader, { passive: true });
+window.addEventListener("resize", measureHeaderBoundary, { passive: true });
+ScrollTrigger.addEventListener("refresh", measureHeaderBoundary);
 const credits = document.querySelector("#credits-dialog");
 document.querySelector("#credits-open").onclick = () => credits.showModal();
 credits.querySelector(".dialog-close").onclick = () => credits.close();

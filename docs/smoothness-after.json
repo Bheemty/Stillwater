@@ -1,0 +1,58 @@
+[
+  {
+    "profile": "desktop",
+    "latencyMs": 120,
+    "routeSeconds": 68,
+    "requests": 1288,
+    "draws": 745,
+    "redundant": 0,
+    "backsteps": 0,
+    "coveredDraws": 0,
+    "meanFrameError": 2.84,
+    "p95FrameError": 8,
+    "stats": {
+      "cached": 38,
+      "requestsStarted": 1287,
+      "decodeFailures": 0,
+      "displayed": {
+        "clip": 1,
+        "frame": 1
+      },
+      "pending": 0,
+      "framesDrawn": 745,
+      "target": 0,
+      "current": 0,
+      "scene": "arrival",
+      "variant": "desktop",
+      "failed": 0
+    }
+  },
+  {
+    "profile": "mobile",
+    "latencyMs": 120,
+    "routeSeconds": 68,
+    "requests": 1290,
+    "draws": 727,
+    "redundant": 0,
+    "backsteps": 0,
+    "coveredDraws": 0,
+    "meanFrameError": 2.86,
+    "p95FrameError": 8,
+    "stats": {
+      "cached": 26,
+      "requestsStarted": 1289,
+      "decodeFailures": 0,
+      "displayed": {
+        "clip": 1,
+        "frame": 1
+      },
+      "pending": 0,
+      "framesDrawn": 727,
+      "target": 0,
+      "current": 0,
+      "scene": "arrival",
+      "variant": "mobile",
+      "failed": 0
+    }
+  }
+]
