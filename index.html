@@ -45,14 +45,15 @@
     <main id="top">
       <section id="journey" aria-label="Explore the venue">
         <div class="cinema-stage">
-          <canvas id="cinema" aria-hidden="true"></canvas>
+          <img class="tour-native-video tour-opening-image" src="/media/1-start.webp" alt="" fetchpriority="high" aria-hidden="true">
+          <canvas id="cinema" style="visibility:hidden" aria-hidden="true"></canvas>
           <div class="cinema-scrim"></div>
-          <div class="media-state" role="status">
+          <div class="media-state ready" role="status">
             <span class="loading-mark"></span
             ><span id="media-message">Opening the doors…</span
             ><button id="media-retry" hidden>Retry scene</button>
           </div>
-          <div id="scene-copy" class="scene-copy"></div>
+          <div id="scene-copy" class="scene-copy hero-copy"><p class="eyebrow">A place for live music.</p><h1>The night begins<br>before the <br>first note.</h1><p class="copy-support">Step inside. Find your place.<br>Make it a night to remember.</p><div class="hero-actions"><button class="light-button" data-go="lobby">Explore the venue <span aria-hidden="true">↓</span></button><button class="text-button" data-book>Choose your seat</button></div></div>
           <div class="scene-meta">
             <span>Stillwater Sessions</span
             ><span>Live, from the first moment.</span>

@@ -139,6 +139,8 @@ export function startJourney(onScene) {
   }
   function draw(img) {
     display.draw(img);
+    canvas.style.visibility='visible';
+    const opening=document.querySelector('.tour-opening-image');if(opening)opening.hidden=true;
   }
   let lastRequested = "";
   function tick() {

@@ -1946,3 +1946,6 @@ dialog::backdrop {
 @media (max-width:699px), (max-aspect-ratio:1.05) {
  .tour-native-video {top:32%;height:auto;aspect-ratio:16/9;object-fit:contain;}
 }
+.tour-opening-image { visibility:visible; }
+#journey { height:calc(100svh + 6704.5px); }
+@media (max-width:700px) { #journey { height:calc(100svh + 5186.5px); } }

@@ -54,10 +54,20 @@ function sceneChanged(key) {
     ? 'Pause here. Find your seat. <span aria-hidden="true">↓</span>'
     : 'Scroll to explore <span aria-hidden="true">↓</span>';
 }
-const { startJourney } = new URLSearchParams(location.search).get('engine') === 'frames'
-  ? await import('./media-frames-legacy.js') : await import('./media.js');
-const journey = startJourney(sceneChanged);
-if(new URLSearchParams(location.search).has('audit')) import('./tour-audit.js').then(m=>m.mountAudit(journey));
+let journey=null,pendingChapter=null;
+sceneChanged('arrival');
+const engine=new URLSearchParams(location.search).get('engine')==='frames'
+ ? import('./media-frames-legacy.js') : import('./media.js');
+engine.then(({startJourney})=>{
+ journey=startJourney(sceneChanged);
+ if(pendingChapter)journey.go(pendingChapter);
+ if(new URLSearchParams(location.search).has('audit'))import('./tour-audit.js').then(m=>m.mountAudit(journey));
+}).catch(error=>{
+ console.error('Tour initialization failed',error);
+ const retry=document.querySelector('#media-retry');retry.hidden=false;retry.onclick=()=>location.reload();
+ document.querySelector('#media-message').textContent='The tour could not start. Retry, or use the seat map.';
+ document.querySelector('.media-state').classList.remove('ready');
+});
 document.addEventListener("click", (e) => {
   const book = e.target.closest("[data-book]");
   if (book) {
@@ -70,7 +80,7 @@ document.addEventListener("click", (e) => {
     return;
   }
   const go = e.target.closest("[data-go]");
-  if (go) journey.go(go.dataset.go);
+  if(go){if(journey)journey.go(go.dataset.go);else pendingChapter=go.dataset.go;}
 });
 document.querySelector("#event-name").textContent = event.name;
 document.querySelector("#event-date").innerHTML =
@@ -120,4 +130,4 @@ const credits = document.querySelector("#credits-dialog");
 document.querySelector("#credits-open").onclick = () => credits.showModal();
 credits.querySelector(".dialog-close").onclick = () => credits.close();
 // Read-only diagnostics for local verification; no user data or payment details.
-window.concertDiagnostics = () => journey.stats();
+window.concertDiagnostics = () => journey?.stats()||{initializing:true};

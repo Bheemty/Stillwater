@@ -1,15 +1,17 @@
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { journeyLength, locate, chapters } from './data.js';
-import { createFilmRenderer } from './film-renderer.js';
 import { filmTarget, continuousFilmTarget, filmToSource, progressForFilm, lastFilmTime } from './video-timeline.js';
 import { createScrollDecoder } from './scroll-decoder.js';
 gsap.registerPlugin(ScrollTrigger);
 const base=import.meta.env.BASE_URL;
+const {createFilmRenderer}=new URLSearchParams(location.search).get('renderer')==='three'
+ ? await import('./film-renderer.js') : await import('./poster-renderer.js');
 
 export function startJourney(onScene){
  const params=new URLSearchParams(location.search);
  const canvas=document.querySelector('#cinema'),section=document.querySelector('#journey');
+ const openingImage=document.querySelector('.tour-opening-image');
  const stage=section.firstElementChild,state=document.querySelector('.media-state');
  const progressBar=document.querySelector('#journey-bar'),chapterIndex=document.querySelector('#chapter-index'),chapterTitle=document.querySelector('#chapter-title');
  const nav=document.querySelector('#chapter-nav'),mode=document.querySelector('#still-mode');
@@ -81,6 +83,7 @@ export function startJourney(onScene){
     canvas.style.visibility=nativeDisplay?'hidden':'visible';
     video.style.visibility=nativeDisplay?'visible':'hidden';
     if(!nativeDisplay)display.draw(video);framesDrawn++;lastFrame=frame;dirty=false;needsPaint=false;
+    if(openingImage)openingImage.hidden=true;
     shownProgress=progressForFilm(decodedTime,current);
     const source=filmToSource(decodedTime);stage.dataset.clip=source.clip;stage.dataset.frame=source.frame;
     state.classList.add('ready');
@@ -88,6 +91,7 @@ export function startJourney(onScene){
   }else if(poster&&needsPaint){
    canvas.style.visibility='visible';if(video)video.style.visibility='hidden';
    display.draw(poster);framesDrawn++;needsPaint=false;shownProgress=still?current:posterProgress;
+   if(openingImage)openingImage.hidden=true;
    const source=locate(shownProgress);stage.dataset.clip=source.clip;stage.dataset.frame=Math.round(source.time*24)+1;
   }
   stage.dataset.exact=String(still||Math.abs(decodedTime-wanted)<1.5/24);

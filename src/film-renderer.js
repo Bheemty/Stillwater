@@ -13,20 +13,8 @@ import {
   REVISION,
 } from "three";
 
-// Match the existing film crop and portrait composition in CSS-pixel coordinates.
-export function filmRect(width, height) {
-  if (width < 700 || width / height < 1.05)
-    return {
-      x: 0,
-      y: Math.round(height * 0.32),
-      width,
-      height: (width * 9) / 16,
-    };
-  const wide = width / height > 16 / 9;
-  const w = wide ? width : (height * 16) / 9;
-  const h = wide ? (width * 9) / 16 : height;
-  return { x: (width - w) / 2, y: (height - h) / 2, width: w, height: h };
-}
+import { filmRect } from './film-layout.js';
+export { filmRect } from './film-layout.js';
 
 export function createFilmRenderer(
   initialCanvas,

@@ -14,7 +14,7 @@ export function createScrollDecoder({parent,variant,base,onFrame,onError}){
   const s={video,chunk:-1,ready:false,aligned:false,url:null,callback:null};
   s.seek=new LatestSeek({read:()=>video.currentTime,write:t=>video.currentTime=t,now:()=>performance.now()});
   const align=()=>{
-   if(s.chunk!==chunkAt(wanted)||!s.ready)return;
+   if(paused||s.chunk!==chunkAt(wanted)||!s.ready)return;
    s.seek.request(wanted-s.chunk);
    if(Math.abs(video.currentTime-s.seek.target)<1/48&&!s.seek.busy){s.aligned=true;emit(s);}else s.seek.flush(true);
   };
