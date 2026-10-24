@@ -6,6 +6,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   Texture,
+  VideoTexture,
   SRGBColorSpace,
   NoToneMapping,
   LinearFilter,
@@ -129,26 +130,30 @@ export function createFilmRenderer(
     lastImage = image;
     const rect = filmRect(width, height);
     if (gl) {
-      const w = image.naturalWidth || image.width,
-        h = image.naturalHeight || image.height;
+      const isVideo = image.tagName === 'VIDEO';
+      const isBitmap = typeof ImageBitmap !== 'undefined' && image instanceof ImageBitmap;
+      const w = image.videoWidth || image.naturalWidth || image.displayWidth || image.width,
+        h = image.videoHeight || image.naturalHeight || image.displayHeight || image.height;
       if (
         !texture ||
         texture.userData.width !== w ||
-        texture.userData.height !== h
+        texture.userData.height !== h ||
+        Boolean(texture.isVideoTexture) !== isVideo ||
+        (isVideo && texture.image !== image) || Boolean(texture.userData.bitmap) !== isBitmap
       ) {
         texture?.dispose();
-        texture = new Texture(image);
+        texture = isVideo ? new VideoTexture(image) : new Texture(image);
         texture.colorSpace = SRGBColorSpace;
         texture.generateMipmaps = false;
         texture.minFilter = LinearFilter;
         texture.magFilter = LinearFilter;
-        texture.userData = { width: w, height: h };
+        texture.userData = { width: w, height: h, bitmap: isBitmap };
+        if(isBitmap){texture.repeat.y=-1;texture.offset.y=1;}
         material.map = texture;
         material.needsUpdate = true;
         texture.needsUpdate = true;
       } else if (texture.image !== image) {
-        texture.image = image;
-        texture.needsUpdate = true;
+        texture.image = image;texture.needsUpdate = true;
       }
       plane.position.set(
         rect.x + rect.width / 2,

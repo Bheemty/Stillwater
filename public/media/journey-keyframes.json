@@ -1,0 +1,38 @@
+{
+  "fps": 24,
+  "frames": 1444,
+  "sourceStarts": [
+    0,
+    480,
+    720,
+    912,
+    1063,
+    1252
+  ],
+  "sourceFirstFrames": [
+    1,
+    1,
+    1,
+    1,
+    4,
+    1
+  ],
+  "files": [
+    {
+      "file": "journey-keyframes-720.mp4",
+      "width": 1280,
+      "height": 720,
+      "bytes": 41173590,
+      "crf": 22,
+      "gop": 1
+    },
+    {
+      "file": "journey-keyframes-432.mp4",
+      "width": 768,
+      "height": 432,
+      "bytes": 19837524,
+      "crf": 22,
+      "gop": 1
+    }
+  ]
+}

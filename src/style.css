@@ -1941,3 +1941,8 @@ dialog::backdrop {
     padding: 25px 0 0;
   }
 }
+/* Native compositing avoids copying each decoded frame into a second GPU surface. */
+.tour-native-video { position:absolute;inset:0;width:100%;height:100%;object-fit:cover;pointer-events:none;visibility:hidden; }
+@media (max-width:699px), (max-aspect-ratio:1.05) {
+ .tour-native-video {top:32%;height:auto;aspect-ratio:16/9;object-fit:contain;}
+}

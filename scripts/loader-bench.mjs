@@ -6,7 +6,7 @@ import * as data from '../src/data.js';
 import * as policy from '../src/frame-policy.js';
 
 // Deterministic loader lab, not a browser FPS/network benchmark.
-const input = process.argv.slice(2).find(arg => !arg.startsWith('--')) || 'src/media.js';
+const input = process.argv.slice(2).find(arg => !arg.startsWith('--')) || 'src/media-frames-legacy.js';
 let source = fs.readFileSync(input, 'utf8').replace(/^import [\s\S]*?;\r?\n/gm, '')
   .replace('import.meta.env.BASE_URL', '"/"').replace('export function', 'function');
 const runs=[];

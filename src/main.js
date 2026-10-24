@@ -4,7 +4,6 @@ import "@fontsource/manrope/latin-400.css";
 import "@fontsource/manrope/latin-500.css";
 import "@fontsource/manrope/latin-600.css";
 import "./style.css";
-import { startJourney } from "./media";
 import { startBooking } from "./booking";
 import { event, zones, money } from "./data";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -55,7 +54,10 @@ function sceneChanged(key) {
     ? 'Pause here. Find your seat. <span aria-hidden="true">↓</span>'
     : 'Scroll to explore <span aria-hidden="true">↓</span>';
 }
+const { startJourney } = new URLSearchParams(location.search).get('engine') === 'frames'
+  ? await import('./media-frames-legacy.js') : await import('./media.js');
 const journey = startJourney(sceneChanged);
+if(new URLSearchParams(location.search).has('audit')) import('./tour-audit.js').then(m=>m.mountAudit(journey));
 document.addEventListener("click", (e) => {
   const book = e.target.closest("[data-book]");
   if (book) {
