@@ -23,7 +23,7 @@ export function startJourney(onScene){
  let still=matchMedia('(prefers-reduced-motion:reduce)').matches;
  let width=0,height=0,dpr=0,sectionTop=0,sectionBottom=0,resizePending=true;
  let scene='',lastChapter='',lastFrame=-1,framesDrawn=0;
- let poster=null,posterKey='',staticRequest=0;
+ let poster=null,posterKey='',staticRequest=0,posterProgress=0,pendingPoster=false,lastFallbackRequest=0;
  const decoder=createScrollDecoder({parent:stage,variant,base,onFrame:(element,time)=>{video=element;decoded(time);},onError:failed});
  function updateCopy(p){
   const pos=locate(p);
@@ -36,12 +36,13 @@ export function startJourney(onScene){
  function loadStill(p){
   const pos=locate(p),frame=Math.max(1,Math.round(pos.time*24)+1),key=`${pos.clip}/${frame}`;
   if(key===posterKey)return;
-  posterKey=key;const request=++staticRequest,img=new Image();img.decoding='async';
+  posterKey=key;pendingPoster=true;const request=++staticRequest,img=new Image();img.decoding='async';
   img.onload=async()=>{
    try{await img.decode();}catch{}
    if(disposed||request!==staticRequest)return;
-   poster=img;needsPaint=true;state.classList.add('ready');
+   poster=img;posterProgress=p;pendingPoster=false;needsPaint=true;state.classList.add('ready');
   };
+  img.onerror=()=>{if(request===staticRequest){pendingPoster=false;posterKey='';}};
   img.src=p===0?`${base}media/1-start.webp`:`${base}media/${pos.clip}/${variant==='432'?'mobile':'desktop'}/${String(frame).padStart(4,'0')}.webp`;
  }
  function startVideo(){
@@ -68,6 +69,9 @@ export function startJourney(onScene){
   // Follow native scroll directly; one decoder request, never a seek backlog.
   current=target;
   const wanted=continuousFilmTarget(current);
+  if(!still&&!hasVideoFrame&&!pendingPoster&&performance.now()-lastFallbackRequest>120){
+   lastFallbackRequest=performance.now();loadStill(current);
+  }
   if(!still)decoder.update(wanted);
   if(!still&&hasVideoFrame){
    const frame=Math.round(decodedTime*24);
@@ -81,7 +85,7 @@ export function startJourney(onScene){
    }else if(Math.abs(decodedTime-wanted)<1.5/24)shownProgress=current;
   }else if(poster&&needsPaint){
    canvas.style.visibility='visible';if(video)video.style.visibility='hidden';
-   display.draw(poster);framesDrawn++;needsPaint=false;shownProgress=still?current:0;
+   display.draw(poster);framesDrawn++;needsPaint=false;shownProgress=still?current:posterProgress;
    const source=locate(shownProgress);stage.dataset.clip=source.clip;stage.dataset.frame=Math.round(source.time*24)+1;
   }
   stage.dataset.exact=String(still||Math.abs(decodedTime-wanted)<1.5/24);
