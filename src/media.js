@@ -25,7 +25,7 @@ export function startJourney(onScene){
  let still=matchMedia('(prefers-reduced-motion:reduce)').matches;
  let width=0,height=0,dpr=0,sectionTop=0,sectionBottom=0,resizePending=true;
  let scene='',lastChapter='',lastFrame=-1,framesDrawn=0;
- let poster=null,posterKey='',staticRequest=0,posterProgress=0,pendingPoster=false,lastFallbackRequest=0;
+ let poster=null,posterKey='',staticRequest=0,posterProgress=0,pendingPoster=false,lastFallbackRequest=0,pendingImage=null,pendingClip=0;
  const decoder=createScrollDecoder({parent:stage,variant,base,onFrame:(element,time)=>{if(video&&video!==element)video.style.visibility='hidden';video=element;decoded(time);},onError:failed});
  function updateCopy(p){
   const pos=locate(p);
@@ -38,7 +38,7 @@ export function startJourney(onScene){
  function loadStill(p){
   const pos=locate(p),frame=Math.max(1,Math.round(pos.time*24)+1),key=`${pos.clip}/${frame}`;
   if(key===posterKey)return;
-  posterKey=key;pendingPoster=true;const request=++staticRequest,img=new Image();img.decoding='async';
+  posterKey=key;pendingPoster=true;pendingClip=pos.clip;const request=++staticRequest,img=new Image();pendingImage=img;img.decoding='async';
   img.onload=async()=>{
    try{await img.decode();}catch{}
    if(disposed||request!==staticRequest)return;
@@ -73,6 +73,9 @@ export function startJourney(onScene){
   current=target;
   const wanted=continuousFilmTarget(current);
   const usePoster=!hasVideoFrame||decoder.waiting;
+  if(usePoster&&pendingPoster&&pendingClip!==locate(current).clip){
+   staticRequest++;pendingImage.onload=pendingImage.onerror=null;pendingImage.src='';pendingPoster=false;posterKey='';
+  }
   if(!still&&usePoster&&!pendingPoster&&performance.now()-lastFallbackRequest>120){
    lastFallbackRequest=performance.now();loadStill(current);
   }
