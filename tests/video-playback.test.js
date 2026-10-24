@@ -38,3 +38,20 @@ test('delivery movies contain independently seekable frames and complete sample 
   index.samples.forEach((s,i)=>{assert.equal(index.keys[i],i);assert.ok(s.size>0);assert.ok(s.offset+s.size<=bytes.length);});
  }
 });
+
+test('delivery pieces preserve every frame exactly once across all boundaries',()=>{
+ for(const variant of ['720','432']){
+  const folder=new URL(`../public/media/tour-${variant}/`,import.meta.url);
+  const names=fs.readdirSync(folder).filter(n=>n.endsWith('.mp4')).sort();
+  assert.equal(names.length,61);let frames=0;
+  for(const [part,name]of names.entries()){
+   assert.equal(name,`${String(part).padStart(3,'0')}.mp4`);
+   const bytes=fs.readFileSync(new URL(name,folder));
+   const index=parseVideoIndex(bytes.buffer.slice(bytes.byteOffset,bytes.byteOffset+Math.min(bytes.length,65536)));
+   assert.equal(index.samples.length,part===60?4:24);assert.equal(index.keys.length,index.samples.length);
+   assert.equal(index.samples.at(-1).offset+index.samples.at(-1).size,bytes.length);
+   frames+=index.samples.length;
+  }
+  assert.equal(frames,1444);
+ }
+});

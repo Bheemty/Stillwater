@@ -20,5 +20,7 @@ for width,label in [(1280,'720'),(768,'432')]:
  print('ENCODING',out,flush=True);subprocess.run(cmd,check=True)
  report['files'].append({'file':out.name,'width':width,'height':width*9//16,'bytes':out.stat().st_size,'crf':crf,'gop':gop})
  print(report['files'][-1],flush=True)
+ folder=dest/f'tour-{label}';folder.mkdir(exist_ok=True)
+ subprocess.run([str(ff),'-v','error','-i',str(out),'-map','0:v','-c','copy','-f','segment','-segment_time','1','-reset_timestamps','1','-segment_format_options','movflags=+faststart','-y',str(folder/'%03d.mp4')],check=True)
 (dest/f'journey-{version}.json').write_text(json.dumps(report,indent=2));print(json.dumps(report),flush=True)
 

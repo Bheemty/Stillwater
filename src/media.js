@@ -24,7 +24,7 @@ export function startJourney(onScene){
  let width=0,height=0,dpr=0,sectionTop=0,sectionBottom=0,resizePending=true;
  let scene='',lastChapter='',lastFrame=-1,framesDrawn=0;
  let poster=null,posterKey='',staticRequest=0,posterProgress=0,pendingPoster=false,lastFallbackRequest=0;
- const decoder=createScrollDecoder({parent:stage,variant,base,onFrame:(element,time)=>{video=element;decoded(time);},onError:failed});
+ const decoder=createScrollDecoder({parent:stage,variant,base,onFrame:(element,time)=>{if(video&&video!==element)video.style.visibility='hidden';video=element;decoded(time);},onError:failed});
  function updateCopy(p){
   const pos=locate(p);
   if(scene!==pos.scene){scene=pos.scene;stage.dataset.scene=scene;onScene(scene);}
@@ -51,6 +51,7 @@ export function startJourney(onScene){
  function decoded(time){
   if(disposed||!video||(video.tagName==='VIDEO'&&video.readyState<2))return;
   decodedTime=Math.max(0,Math.min(lastFilmTime,time));hasVideoFrame=true;dirty=true;
+  if(video.style.visibility!=='visible')needsPaint=true;
  }
  function failed(){
   state.classList.remove('ready');
@@ -69,11 +70,12 @@ export function startJourney(onScene){
   // Follow native scroll directly; one decoder request, never a seek backlog.
   current=target;
   const wanted=continuousFilmTarget(current);
-  if(!still&&!hasVideoFrame&&!pendingPoster&&performance.now()-lastFallbackRequest>120){
+  const usePoster=!hasVideoFrame||decoder.waiting;
+  if(!still&&usePoster&&!pendingPoster&&performance.now()-lastFallbackRequest>120){
    lastFallbackRequest=performance.now();loadStill(current);
   }
   if(!still)decoder.update(wanted);
-  if(!still&&hasVideoFrame){
+  if(!still&&hasVideoFrame&&!decoder.waiting){
    const frame=Math.round(decodedTime*24);
    if((dirty&&frame!==lastFrame)||needsPaint){
     canvas.style.visibility=nativeDisplay?'hidden':'visible';
@@ -130,7 +132,7 @@ export function startJourney(onScene){
  setup();loadStill(0);startVideo();updateCopy(0);gsap.ticker.add(tick);
  return {go,get still(){return still;},stats:()=>({
   ...display.stats(),renderer:nativeDisplay?'native-video':display.stats().renderer,engine:'continuous-video',target,current,scene,variant,framesDrawn,
-  displayed:filmToSource(decodedTime),displayedTime:decodedTime,wantedTime:filmTarget(target),
+  displayed:filmToSource(decoder.waiting?filmTarget(posterProgress):decodedTime),displayedTime:decoder.waiting?filmTarget(posterProgress):decodedTime,wantedTime:filmTarget(target),
   ...decoder.stats(),
  })};
 }
