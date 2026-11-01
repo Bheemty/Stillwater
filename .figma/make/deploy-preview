@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+rm -rf dist
+mkdir -p dist
+cp index.html style.css app.js dist/
+cp ./*.mp4 ./*.png dist/
+[[ -d "dist" ]] || {
+  echo "Expected build output at dist" >&2
+  exit 1
+}
+figma make deploy-preview --build-dir "dist"

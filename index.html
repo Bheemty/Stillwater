@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#232822">
+<meta name="description" content="Step inside Stillwater Hall. Scroll through the venue, choose your seat and create a demo digital ticket.">
+<title>Stillwater Hall | Before the first note</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Manrope:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head><body>
+<a class="skip" href="#event">Skip the cinematic tour</a>
+<header class="hdr" id="hdr">
+  <a class="mark" href="#top" aria-label="Stillwater Hall, back to beginning"><i>III</i><span>Stillwater<small>Hall &amp; live music</small></span></a>
+  <nav aria-label="Main"><a href="#event">The evening</a><a href="#questions">Good to know</a><button class="pill" data-book>Choose your seat <span aria-hidden="true">&#8599;</span></button></nav>
+</header>
+
+<main id="top">
+<section id="journey" aria-label="Explore the venue">
+  <div class="stage">
+    <div class="films" id="films"></div>
+    <img class="still" id="still" alt="" hidden>
+    <div class="scrim"></div>
+    <div class="copy" id="copy"></div>
+    <div class="meta"><span>Stillwater Sessions</span><span>Live, from the first moment.</span></div>
+    <button class="skipseat" data-go="3">Skip to seat selection <span aria-hidden="true">&#8599;</span></button>
+    <div class="ctrls">
+      <div class="chap"><span id="ci">01</span><span id="ct">The arrival</span></div>
+      <div class="line"><span id="bar"></span></div>
+      <button id="stillMode" aria-pressed="false">Still views</button>
+    </div>
+    <nav id="cnav" aria-label="Tour chapters"></nav>
+    <div class="hint" id="hint">Scroll to step inside <span aria-hidden="true">&#8595;</span></div>
+  </div>
+</section>
+
+<section id="event" class="evening">
+  <div class="topline"><span>A little anticipation.</span><span>A lot to look forward to.</span></div>
+  <div class="eve-grid">
+    <div>
+      <p class="eyebrow">Stillwater Sessions &middot; A demo evening</p>
+      <h2>Some nights<br>stay with you.</h2>
+      <p class="ed">A room built for listening. A seat that feels like yours. An evening of live sound, shared with the people who came to feel it.</p>
+      <button class="dark" data-book>Find your place <span aria-hidden="true">&#8599;</span></button>
+    </div>
+    <div class="facts">
+      <p class="note">An imaginary event.<br>A fully explorable experience.</p>
+      <dl>
+        <div><dt>The occasion</dt><dd>Stillwater Sessions: An Evening of Live Music</dd></div>
+        <div><dt>When</dt><dd>Saturday 20 June 2026<br><small>Doors 18:30 &middot; Programme 19:30</small></dd></div>
+        <div><dt>Where</dt><dd>Stillwater Hall<br><small>Concept venue</small></dd></div>
+        <div><dt>The programme</dt><dd>An acoustic opening.<br>A live ensemble.<br>A closing set to remember.<small>Sample programme; no performers announced.</small></dd></div>
+      </dl>
+    </div>
+  </div>
+  <div class="strip" id="strip"></div>
+</section>
+
+<section id="questions" class="faq">
+  <div><p class="eyebrow">Before you arrive</p><h2>Good to know.</h2><p>A few details, so you can<br>settle into the evening.</p></div>
+  <div class="fl">
+    <details><summary>When should I arrive?<span>+</span></summary><p>For this sample evening, doors open at 18:30 and the programme begins at 19:30. Allow time to explore the lobby and find your seat. All dates and times are illustrative.</p></details>
+    <details><summary>Can I choose seats on either side?<span>+</span></summary><p>Yes. The seat map includes left, centre and right blocks across front, middle and rear zones. Every seat has its own ID and sample price. The map is schematic and not a verified floor plan of the filmed hall.</p></details>
+    <details><summary>Is this a real booking?<span>+</span></summary><p>No. Select seats, enter sample attendee details, simulate payment and create a digital ticket. Nothing is charged or reserved. Demo tickets are not valid for entry.</p></details>
+    <details><summary>Is the hall accessible?<span>+</span></summary><p>In this concept, step-free access, a hearing loop and wheelchair spaces are assumed at the end of each front and rear row. Accessible seats are marked on the map.</p></details>
+    <details><summary>Can I explore without motion?<span>+</span></summary><p>Choose "Still views" for static scenes with chapter navigation. The complete booking flow remains available. Your device's reduced-motion preference is respected automatically.</p></details>
+  </div>
+</section>
+
+<section class="cta"><p class="eyebrow">There's a place for you here.</p><h2>Your evening.<br>Your seat.</h2><button class="light" data-book>Choose your seat <span aria-hidden="true">&#8599;</span></button><small>Demo availability. No real payment.</small></section>
+</main>
+
+<footer class="ftr">
+  <div class="fr"><a class="mark" href="#top"><i>III</i><span>Stillwater<small>Hall &amp; live music</small></span></a>
+  <nav><a href="#event">The evening</a><a href="#questions">Good to know</a><button data-ticket>Your demo ticket</button><button data-book>Seat map</button></nav></div>
+  <p>A concert experience concept. Footage is AI-generated, prerendered architectural film, not an interactive 3D model. Event details and seat inventory are fictional.</p>
+  <p class="s"><span>&copy; 2026 Stillwater Hall concept</span><span>Sample event &middot; Demo bookings only</span><button id="reset">Reset sample seats and ticket in this browser</button></p>
+</footer>
+
+<aside class="bar" id="bar2" hidden aria-label="Your selection"><span id="barTxt"></span><button class="pill" data-book>View selection &#8599;</button></aside>
+
+<div class="sheet" id="sheet" hidden><div class="panel" role="dialog" aria-modal="true" aria-labelledby="st">
+  <button class="close" id="sx" aria-label="Close">&times;</button>
+  <div id="sbody"></div>
+</div></div>
+<script src="app.js"></script>
+</body></html>

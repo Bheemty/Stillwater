@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# Static site: no dependencies to install.
+exit 0
