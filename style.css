@@ -11,6 +11,7 @@ p{margin:0 0 1em}small{display:block;color:var(--mut)}
 .hdr{position:fixed;inset:0 0 auto;z-index:60;display:flex;justify-content:space-between;align-items:center;padding:18px clamp(18px,3vw,44px);transition:background .4s}
 .hdr.solid{background:#232822ee;backdrop-filter:blur(8px)}
 .mark{display:flex;gap:12px;align-items:center;text-decoration:none;font-family:var(--serif);font-size:1.5rem;line-height:1}
+.hdr .mark,.hdr .mark small{color:#fff}
 .mark i{font-style:normal;width:34px;height:34px;border:1px solid currentColor;border-radius:50%;display:grid;place-items:center;font-size:.8rem}
 .mark small{font:600 .62rem var(--sans);letter-spacing:.2em;text-transform:uppercase;margin-top:4px}
 .hdr nav{display:flex;gap:30px;align-items:center}.hdr nav a{text-decoration:none;font-size:.85rem;color:#eee9dfcc}.hdr nav a:hover{color:#fff}
